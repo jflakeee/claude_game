@@ -661,6 +661,550 @@ git commit -m "feat: add working auto-equip grade cycle control to settings tab"
 
 ---
 
+---
+
+### Task 22: 스크랩북 시스템 (교체 장비 골드로 즉시 복원)
+
+**Files:**
+- Modify: `src/state/store.js` (`scrapbook: []` 기본 상태 추가)
+- Create: `src/systems/scrapbook.js`
+- Test: `tests/systems/scrapbook.test.js`
+- Modify: `src/systems/idleCombat.js` (`resolveIdleKill`이 `inventory` 대신 `scrapbook`으로 교체 장비를 회수하도록 변경 — Task 18의 동작을 대체)
+- Modify: `tests/systems/idleCombat.test.js` (Task 18에서 추가한 테스트를 스크랩북 기준으로 교체)
+- Modify: `src/scenes/IdleScene.js` (`resolveIdleKill` 호출에 `scrapbook` 전달)
+- Modify: `src/ui/BottomPanel.js` (장비 탭에 스크랩북 목록 + 복원 버튼 추가)
+
+**결정 사항(사용자 확정):** 복원 시 즉시 재장착되고, 기존 장착 아이템은 다시 스크랩북으로 들어간다. 복원 비용은 Task 8의 등급별 골드 가치(`itemGoldValue`)를 그대로 재사용한다.
+
+- [ ] **Step 1: scrapbook.js 실패하는 테스트 작성**
+
+`tests/systems/scrapbook.test.js`:
+```js
+import { describe, it, expect } from 'vitest';
+import { restoreCost, restoreFromScrapbook } from '../../src/systems/scrapbook.js';
+
+const item = (id, grade, slot = 'weapon') => ({ id, name: id, grade, statBonus: {}, slot });
+
+describe('restoreCost', () => {
+  it('등급별 골드 가치를 그대로 반환한다', () => {
+    expect(restoreCost(item('a', 'normal'))).toBe(5);
+    expect(restoreCost(item('b', 'epic'))).toBe(100);
+  });
+});
+
+describe('restoreFromScrapbook', () => {
+  it('스크랩북에 없는 아이템이면 실패한다', () => {
+    const result = restoreFromScrapbook([], { equippedItems: [] }, { gold: 1000 }, 'missing');
+    expect(result).toEqual({ restored: false, reason: 'not_found' });
+  });
+
+  it('골드가 부족하면 실패하고 골드/스크랩북을 바꾸지 않는다', () => {
+    const scrapped = item('s1', 'epic');
+    const scrapbook = [scrapped];
+    const currency = { gold: 10 };
+    const result = restoreFromScrapbook(scrapbook, { equippedItems: [] }, currency, 's1');
+    expect(result).toEqual({ restored: false, reason: 'insufficient_gold' });
+    expect(currency.gold).toBe(10);
+    expect(scrapbook).toHaveLength(1);
+  });
+
+  it('성공하면 골드를 소모하고 즉시 재장착하며, 기존 장착 아이템은 스크랩북으로 들어간다', () => {
+    const scrapped = item('s1', 'normal');
+    const currentlyEquipped = item('cur', 'magic');
+    const scrapbook = [scrapped];
+    const character = { equippedItems: [currentlyEquipped] };
+    const currency = { gold: 100 };
+
+    const result = restoreFromScrapbook(scrapbook, character, currency, 's1');
+
+    expect(result.restored).toBe(true);
+    expect(result.cost).toBe(5);
+    expect(currency.gold).toBe(95);
+    expect(character.equippedItems).toEqual([scrapped]);
+    expect(scrapbook).toEqual([currentlyEquipped]);
+  });
+
+  it('해당 슬롯에 장착된 장비가 없으면 그냥 장착하고 스크랩북에는 아무것도 추가되지 않는다', () => {
+    const scrapped = item('s1', 'normal');
+    const scrapbook = [scrapped];
+    const character = { equippedItems: [] };
+    const currency = { gold: 100 };
+
+    const result = restoreFromScrapbook(scrapbook, character, currency, 's1');
+
+    expect(result.restored).toBe(true);
+    expect(character.equippedItems).toEqual([scrapped]);
+    expect(scrapbook).toEqual([]);
+  });
+});
+```
+
+- [ ] **Step 2: 테스트 실패 확인**
+
+Run: `npx vitest run tests/systems/scrapbook.test.js`
+Expected: FAIL — `Cannot find module '../../src/systems/scrapbook.js'`
+
+- [ ] **Step 3: scrapbook.js 최소 구현 작성**
+
+`src/systems/scrapbook.js`:
+```js
+import { itemGoldValue } from './inventory.js';
+
+export function restoreCost(item) {
+  return itemGoldValue(item);
+}
+
+export function restoreFromScrapbook(scrapbook, character, currency, itemId) {
+  const idx = scrapbook.findIndex((i) => i.id === itemId);
+  if (idx < 0) return { restored: false, reason: 'not_found' };
+
+  const item = scrapbook[idx];
+  const cost = restoreCost(item);
+  if (currency.gold < cost) return { restored: false, reason: 'insufficient_gold' };
+
+  currency.gold -= cost;
+  scrapbook.splice(idx, 1);
+
+  const slotIdx = character.equippedItems.findIndex((i) => i.slot === item.slot);
+  const previouslyEquipped = slotIdx >= 0 ? character.equippedItems[slotIdx] : null;
+  if (slotIdx >= 0) {
+    character.equippedItems[slotIdx] = item;
+  } else {
+    character.equippedItems.push(item);
+  }
+  if (previouslyEquipped) {
+    scrapbook.push(previouslyEquipped);
+  }
+  return { restored: true, cost, previouslyEquipped };
+}
+```
+
+- [ ] **Step 4: 테스트 통과 확인**
+
+Run: `npx vitest run tests/systems/scrapbook.test.js`
+Expected: PASS (5 tests)
+
+- [ ] **Step 5: store.js에 scrapbook 기본 상태 추가**
+
+`src/state/store.js`의 `createStore()` 내부 상태 객체:
+```js
+  const state = {
+    character: createCharacter(),
+    currency: createCurrency(),
+    inventory: [],
+    scrapbook: [],
+    settings: { autoEquipMinGrade: 'normal' },
+    runState: createRunState(),
+  };
+```
+
+`tests/state/store.test.js`의 첫 번째 테스트(`기본 상태에 ... 포함한다`)에 다음 어서션 추가:
+```js
+    expect(state.scrapbook).toEqual([]);
+```
+
+- [ ] **Step 6: idleCombat.js가 교체 장비를 inventory 대신 scrapbook으로 보내도록 변경**
+
+`src/systems/idleCombat.js`의 `resolveIdleKill` 시그니처와 본문을 다음으로 교체:
+```js
+export function resolveIdleKill({ character, currency, inventory, scrapbook, autoEquipMinGrade, randomFn = Math.random }) {
+  const goldDrop = 2;
+  const expDrop = 3;
+  currency.gold += goldDrop;
+  character.exp += expDrop;
+
+  const grade = rollGrade(randomFn);
+  const item = {
+    id: `item_${Date.now()}_${Math.floor(randomFn() * 100000)}`,
+    name: `${grade} 장비`,
+    grade,
+    statBonus: { atk: 1 },
+    slot: 'weapon',
+  };
+
+  const autoEquipResult = autoEquip(item, character, autoEquipMinGrade);
+  if (!autoEquipResult.equipped) {
+    addItemToInventory(inventory, item, currency, false);
+  } else if (autoEquipResult.replaced) {
+    scrapbook.push(autoEquipResult.replaced);
+  }
+  return { goldDrop, expDrop, item, autoEquipResult };
+}
+```
+
+`tests/systems/idleCombat.test.js`에서 Task 18이 추가했던 "자동 장착으로 기존 장비가 교체되면 인벤토리로 회수된다" 테스트를 다음으로 교체(인벤토리 대신 scrapbook을 검증):
+```js
+  it('자동 장착으로 기존 장비가 교체되면 스크랩북으로 회수된다', () => {
+    const existing = { id: 'old', name: '기존 장비', grade: 'normal', statBonus: {}, slot: 'weapon' };
+    const character = { equippedItems: [existing], exp: 0 };
+    const currency = { gold: 0 };
+    const inventory = [];
+    const scrapbook = [];
+
+    resolveIdleKill({
+      character,
+      currency,
+      inventory,
+      scrapbook,
+      autoEquipMinGrade: 'normal',
+      randomFn: () => 0,
+    });
+
+    expect(character.equippedItems).toHaveLength(1);
+    expect(character.equippedItems[0]).not.toBe(existing);
+    expect(scrapbook).toContainEqual(existing);
+    expect(inventory).toHaveLength(0);
+  });
+```
+
+같은 파일의 다른 두 테스트(`골드/경험치를 지급하고...`, `드롭 등급이 자동장착 기준을...`)도 `resolveIdleKill` 호출에 `scrapbook: []`를 추가해야 합니다(그렇지 않으면 `scrapbook.push`에서 `undefined`를 push하려다 에러가 납니다 — 단, 기존 두 테스트는 `autoEquipResult.replaced`가 발생하지 않는 시나리오이므로 `scrapbook`이 실제로 쓰이진 않지만, 함수 시그니처가 바뀌었으니 호출부에 인자를 맞춰주는 것이 안전합니다).
+
+- [ ] **Step 7: IdleScene.js가 scrapbook을 전달하도록 수정**
+
+`src/scenes/IdleScene.js`의 `resolveIdleKill(...)` 호출:
+```js
+      resolveIdleKill({
+        character: state.character,
+        currency: state.currency,
+        inventory: state.inventory,
+        scrapbook: state.scrapbook,
+        autoEquipMinGrade: state.settings.autoEquipMinGrade,
+      });
+```
+
+- [ ] **Step 8: BottomPanel.js 장비 탭에 스크랩북 목록 + 복원 버튼 추가**
+
+`src/ui/BottomPanel.js` 상단 import에 추가:
+```js
+import { itemGoldValue } from '../systems/inventory.js';
+import { restoreFromScrapbook } from '../systems/scrapbook.js';
+```
+
+`renderTab`의 `equipment` 분기를 다음으로 교체:
+```js
+  if (tab === 'equipment') {
+    const equippedHtml = state.character.equippedItems.length === 0
+      ? '<li>장착한 장비 없음</li>'
+      : state.character.equippedItems.map((i) => `<li>${i.name} (${i.grade})</li>`).join('');
+    const scrapbook = state.scrapbook || [];
+    const scrapbookHtml = scrapbook.length === 0
+      ? '<p>스크랩북이 비어 있습니다.</p>'
+      : `<ul>${scrapbook
+          .map(
+            (i) =>
+              `<li>${i.name} (${i.grade}) · ${itemGoldValue(i)}G <button data-action="restore-scrapbook-item" data-item-id="${i.id}" class="mock-button">복원</button></li>`
+          )
+          .join('')}</ul>`;
+    return `<ul>${equippedHtml}</ul><div class="section"><p class="label">스크랩북</p>${scrapbookHtml}</div>`;
+  }
+```
+
+`mountBottomPanel`에서 `container.querySelectorAll('.tab-button')...` 블록 다음에 클릭 위임 리스너 추가:
+```js
+  content.addEventListener('click', (event) => {
+    const restoreBtn = event.target.closest('[data-action="restore-scrapbook-item"]');
+    if (!restoreBtn) return;
+    const state = store.getState();
+    restoreFromScrapbook(state.scrapbook, state.character, state.currency, restoreBtn.dataset.itemId);
+    store.notify();
+  });
+```
+
+(Task 21에서 `cycle-auto-equip-grade` 리스너를 이미 추가했다면, 같은 `content.addEventListener('click', ...)` 블록 안에서 `data-action` 값에 따라 분기하도록 합쳐야 합니다 — 두 개의 별도 `addEventListener('click', ...)`를 등록해도 동작은 하지만, 하나로 합치는 편이 더 깔끔합니다. 이미 등록된 리스너가 있다면 유지하고 새 조건 분기만 추가하세요.)
+
+`tests/ui/BottomPanel.test.js`의 `equipment` 탭 테스트에 `state.scrapbook = []`를 `baseState()`에 추가하고, 스크랩북 표시를 검증하는 테스트를 추가:
+```js
+  it('equipment 탭: 스크랩북에 아이템이 있으면 복원 버튼과 함께 보여준다', () => {
+    const state = baseState();
+    state.scrapbook = [{ id: 'x1', name: '교체된 검', grade: 'rare', statBonus: {}, slot: 'weapon' }];
+    const html = renderTab('equipment', state);
+    expect(html).toContain('교체된 검 (rare)');
+    expect(html).toContain('data-action="restore-scrapbook-item"');
+    expect(html).toContain('data-item-id="x1"');
+  });
+```
+`baseState()` 함수에도 `scrapbook: []` 필드를 추가하세요.
+
+- [ ] **Step 9: 빌드/테스트 검증**
+
+Run: `npm run build` → 성공해야 함
+Run: `npm test` → 전체 PASS
+
+- [ ] **Step 10: 커밋**
+
+```bash
+git add src/state/store.js tests/state/store.test.js src/systems/scrapbook.js tests/systems/scrapbook.test.js src/systems/idleCombat.js tests/systems/idleCombat.test.js src/scenes/IdleScene.js src/ui/BottomPanel.js tests/ui/BottomPanel.test.js
+git commit -m "feat: add scrapbook system for gold-cost equipment restoration"
+```
+
+---
+
+### Task 23: 하단 UI 드래그 최소화
+
+**Files:**
+- Modify: `src/ui/BottomPanel.js`
+- Modify: `src/style.css`
+
+이 Task는 순수 DOM/CSS 상호작용이라 유닛 테스트 대상이 아닙니다(Task 13의 `mountBottomPanel`과 동일한 정책). 빌드 검증으로 대체합니다.
+
+- [ ] **Step 1: 드래그 핸들 마크업 추가**
+
+`src/ui/BottomPanel.js`의 `mountBottomPanel` 내부, `container.innerHTML = ...` 부분을 다음으로 교체:
+```js
+  container.innerHTML = `
+    <div class="panel-handle" data-role="drag-handle"></div>
+    <div class="tab-bar">
+      ${TABS.map((t) => `<button data-tab="${t}" class="tab-button">${TAB_LABELS[t]}</button>`).join('')}
+    </div>
+    <div class="tab-content"></div>
+  `;
+```
+
+- [ ] **Step 2: 드래그/탭 로직 추가**
+
+`mountBottomPanel` 함수 끝부분(`store.subscribe(render); render();` 앞)에 추가:
+```js
+  const handle = container.querySelector('[data-role="drag-handle"]');
+  let dragStartY = null;
+
+  handle.addEventListener('pointerdown', (event) => {
+    dragStartY = event.clientY;
+  });
+
+  handle.addEventListener('pointerup', (event) => {
+    if (dragStartY === null) return;
+    const deltaY = event.clientY - dragStartY;
+    dragStartY = null;
+
+    if (deltaY > 40) {
+      container.classList.add('minimized');
+    } else if (deltaY < -10 || Math.abs(deltaY) <= 5) {
+      container.classList.remove('minimized');
+    }
+  });
+```
+
+- [ ] **Step 3: CSS 추가**
+
+`src/style.css`에 추가:
+```css
+.panel-handle {
+  width: 40px;
+  height: 5px;
+  margin: 6px auto;
+  border-radius: 3px;
+  background: #555;
+  cursor: grab;
+  touch-action: none;
+}
+
+#bottom-panel.minimized {
+  flex: 0 0 auto;
+}
+
+#bottom-panel.minimized .tab-bar,
+#bottom-panel.minimized .tab-content {
+  display: none;
+}
+```
+
+- [ ] **Step 4: 빌드 검증**
+
+Run: `npm run build` → 성공해야 함
+Run: `npm test` → 전체 PASS (이 Task는 신규 유닛 테스트 없음)
+
+- [ ] **Step 5: 커밋**
+
+```bash
+git add src/ui/BottomPanel.js src/style.css
+git commit -m "feat: add drag-to-minimize handle to bottom panel"
+```
+
+---
+
+### Task 24: 상점 탭 — 랜덤 등급 장비 뽑기(가챠)
+
+**Files:**
+- Create: `src/systems/shop.js`
+- Test: `tests/systems/shop.test.js`
+- Modify: `src/ui/BottomPanel.js` (상점 탭에 뽑기 버튼 추가)
+- Modify: `tests/ui/BottomPanel.test.js`
+
+**Depends on:** Task 22 (scrapbook — 뽑은 아이템이 자동장착 교체를 트리거할 수 있으므로 동일한 scrapbook 회수 경로를 재사용)
+
+- [ ] **Step 1: 실패하는 테스트 작성**
+
+`tests/systems/shop.test.js`:
+```js
+import { describe, it, expect } from 'vitest';
+import { pullGacha, GACHA_COST } from '../../src/systems/shop.js';
+
+function baseArgs(overrides = {}) {
+  return {
+    character: { equippedItems: [] },
+    currency: { gold: 100 },
+    inventory: [],
+    scrapbook: [],
+    autoEquipMinGrade: 'epic',
+    randomFn: () => 0,
+    ...overrides,
+  };
+}
+
+describe('pullGacha', () => {
+  it('골드가 부족하면 실패하고 골드를 차감하지 않는다', () => {
+    const args = baseArgs({ currency: { gold: 5 } });
+    const result = pullGacha(args);
+    expect(result).toEqual({ success: false, item: null });
+    expect(args.currency.gold).toBe(5);
+  });
+
+  it('성공하면 GACHA_COST만큼 골드를 차감하고 아이템을 생성한다', () => {
+    const args = baseArgs();
+    const result = pullGacha(args);
+    expect(result.success).toBe(true);
+    expect(args.currency.gold).toBe(100 - GACHA_COST);
+    expect(result.item.grade).toBe('normal');
+  });
+
+  it('자동장착 기준을 만족하면 인벤토리 대신 장착된다', () => {
+    const args = baseArgs({ autoEquipMinGrade: 'normal' });
+    const result = pullGacha(args);
+    expect(result.autoEquipResult.equipped).toBe(true);
+    expect(args.inventory).toHaveLength(0);
+  });
+});
+```
+
+- [ ] **Step 2: 테스트 실패 확인**
+
+Run: `npx vitest run tests/systems/shop.test.js`
+Expected: FAIL — `Cannot find module '../../src/systems/shop.js'`
+
+- [ ] **Step 3: 최소 구현 작성**
+
+`src/systems/shop.js`:
+```js
+import { rollGrade } from '../data/dropTable.js';
+import { autoEquip } from './autoEquip.js';
+import { addItemToInventory } from './inventory.js';
+
+export const GACHA_COST = 20;
+
+export function pullGacha({ character, currency, inventory, scrapbook, autoEquipMinGrade, randomFn = Math.random }) {
+  if (currency.gold < GACHA_COST) return { success: false, item: null };
+  currency.gold -= GACHA_COST;
+
+  const grade = rollGrade(randomFn);
+  const item = {
+    id: `gacha_${Date.now()}_${Math.floor(randomFn() * 100000)}`,
+    name: `${grade} 장비`,
+    grade,
+    statBonus: { atk: 1 },
+    slot: 'weapon',
+  };
+
+  const autoEquipResult = autoEquip(item, character, autoEquipMinGrade);
+  if (!autoEquipResult.equipped) {
+    addItemToInventory(inventory, item, currency, false);
+  } else if (autoEquipResult.replaced) {
+    scrapbook.push(autoEquipResult.replaced);
+  }
+
+  return { success: true, item, autoEquipResult };
+}
+```
+
+- [ ] **Step 4: 테스트 통과 확인**
+
+Run: `npx vitest run tests/systems/shop.test.js`
+Expected: PASS (3 tests)
+
+- [ ] **Step 5: BottomPanel.js 상점 탭에 뽑기 버튼 추가**
+
+`src/ui/BottomPanel.js` import에 추가:
+```js
+import { GACHA_COST, pullGacha } from '../systems/shop.js';
+```
+
+`renderTab`의 `shop` 분기를 다음으로 교체:
+```js
+  if (tab === 'shop') {
+    return `
+      <p>골드: ${state.currency.gold}</p>
+      <button data-action="pull-gacha" class="mock-button">뽑기 (${GACHA_COST}골드)</button>
+    `;
+  }
+```
+
+`mountBottomPanel`의 클릭 위임 리스너(Task 22에서 만든 것, 또는 Task 21의 것)에 분기 추가 — 기존 리스너 함수 본문을 다음과 같은 형태로 합칩니다:
+```js
+  content.addEventListener('click', (event) => {
+    const cycleBtn = event.target.closest('[data-action="cycle-auto-equip-grade"]');
+    if (cycleBtn) {
+      const current = store.getState().settings.autoEquipMinGrade;
+      const currentIndex = GRADE_ORDER.indexOf(current);
+      const nextGrade = GRADE_ORDER[(currentIndex + 1) % GRADE_ORDER.length];
+      store.setState({ settings: { ...store.getState().settings, autoEquipMinGrade: nextGrade } });
+      return;
+    }
+
+    const restoreBtn = event.target.closest('[data-action="restore-scrapbook-item"]');
+    if (restoreBtn) {
+      const state = store.getState();
+      restoreFromScrapbook(state.scrapbook, state.character, state.currency, restoreBtn.dataset.itemId);
+      store.notify();
+      return;
+    }
+
+    const gachaBtn = event.target.closest('[data-action="pull-gacha"]');
+    if (gachaBtn) {
+      const state = store.getState();
+      pullGacha({
+        character: state.character,
+        currency: state.currency,
+        inventory: state.inventory,
+        scrapbook: state.scrapbook,
+        autoEquipMinGrade: state.settings.autoEquipMinGrade,
+      });
+      store.notify();
+      return;
+    }
+  });
+```
+
+(Task 21/22에서 이미 비슷한 리스너를 추가했다면, 중복 등록하지 말고 위 형태로 하나의 리스너 안에 세 분기를 모두 합치세요.)
+
+`tests/ui/BottomPanel.test.js`의 shop 탭 테스트를 다음으로 교체:
+```js
+  it('shop 탭: 보유 골드와 뽑기 버튼을 보여준다', () => {
+    const html = renderTab('shop', baseState());
+    expect(html).toContain('120');
+    expect(html).toContain('data-action="pull-gacha"');
+  });
+```
+
+- [ ] **Step 6: 빌드/테스트 검증**
+
+Run: `npm run build` → 성공해야 함
+Run: `npm test` → 전체 PASS
+
+- [ ] **Step 7: 커밋**
+
+```bash
+git add src/systems/shop.js tests/systems/shop.test.js src/ui/BottomPanel.js tests/ui/BottomPanel.test.js
+git commit -m "feat: add gacha-style random equipment pull to shop tab"
+```
+
+---
+
+## Self-Review 요약 (Tasks 22-24 추가분)
+
+- **사용자 신규 요구사항 커버:** 스크랩북+골드복원(Task 22), 하단 UI 드래그 최소화(Task 23), 상점 가챠(Task 24) — 모두 대응 Task 존재.
+- **Task 18과의 관계:** Task 18이 만든 "교체 장비 → inventory" 동작은 Task 22에서 "교체 장비 → scrapbook"으로 대체된다. Task 22의 Step 6은 Task 18이 추가한 테스트를 명시적으로 교체하도록 지시한다.
+- **실행 순서:** 22는 17(터치입력)과 19(풀스크린/진행도) 이후, 24는 22 이후에 실행한다 — `IdleScene.js`/`BottomPanel.js`를 여러 Task가 순차적으로 수정하므로 파일 충돌을 피하기 위함이다.
+- **스킬 트리 심화는 범위 제외:** diablo_clone 재검토 결과 발견된 스킬트리(선행조건/시너지) 심화는 사용자 확인을 거쳐 이번 보완 범위에서 제외하고 기존 로드맵(2차 이후)에 남겨둔다.
+
 ## Self-Review 요약
 
 - **최종 리뷰 Critical 3건 커버:** 레벨업/스킬포인트 지급(Task 15), 장비/스킬 스탯의 게임플레이 반영(Task 16), 터치/드래그 입력(Task 17) — 모두 대응 Task 존재.
