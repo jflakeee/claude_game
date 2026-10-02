@@ -11,6 +11,7 @@ export function shouldAutoEquip(droppedItem, currentEquipped, minGrade) {
   return statTotal(droppedItem) > statTotal(current);
 }
 
+// Mutates character.equippedItems in place (by design; Task 9 depends on this).
 export function autoEquip(droppedItem, character, minGrade) {
   if (!shouldAutoEquip(droppedItem, character.equippedItems, minGrade)) {
     return { equipped: false, replaced: null };
