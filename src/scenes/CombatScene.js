@@ -21,6 +21,9 @@ export class CombatScene extends Phaser.Scene {
   }
 
   create() {
+    const bottomPanel = document.getElementById('bottom-panel');
+    if (bottomPanel) bottomPanel.style.display = 'none';
+
     this.session = createCombatSession();
     this.playerHp = 100;
 
@@ -76,6 +79,8 @@ export class CombatScene extends Phaser.Scene {
 
   endCombat() {
     if (this.enemyHitTimer) this.enemyHitTimer.remove();
+    const bottomPanel = document.getElementById('bottom-panel');
+    if (bottomPanel) bottomPanel.style.display = '';
     const state = store.getState();
     settleCombat(this.session, state.currency, state.character);
     applyLevelUps(state.character);

@@ -18,5 +18,5 @@ export function createCurrency() {
 }
 
 export function createRunState() {
-  return { mode: 'idle', stageIndex: 0, combatTimer: 0 };
+  return { mode: 'idle', stageIndex: 0, combatTimer: 0, distancePx: 0 };
 }

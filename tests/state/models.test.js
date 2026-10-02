@@ -27,7 +27,7 @@ describe('createCurrency', () => {
 });
 
 describe('createRunState', () => {
-  it('기본값 idle 모드, stageIndex 0을 가진다', () => {
-    expect(createRunState()).toEqual({ mode: 'idle', stageIndex: 0, combatTimer: 0 });
+  it('기본값 idle 모드, stageIndex 0, distancePx 0을 가진다', () => {
+    expect(createRunState()).toEqual({ mode: 'idle', stageIndex: 0, combatTimer: 0, distancePx: 0 });
   });
 });

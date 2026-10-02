@@ -1,7 +1,6 @@
 import Phaser from 'phaser';
 import { store } from '../state/globalStore.js';
 import {
-  createIdleProgress,
   advanceIdleProgress,
   resolveIdleKill,
   STAGE_LENGTH_PX,
@@ -16,7 +15,7 @@ export class IdleScene extends Phaser.Scene {
   }
 
   create() {
-    this.progress = createIdleProgress();
+    this.progress = store.getState().runState;
     this.tickAccumulator = 0;
     this.trackWidth = this.scale.width - 80;
 
