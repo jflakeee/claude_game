@@ -38,3 +38,25 @@ describe('persistence', () => {
     expect(loadState(storage)).toBeNull();
   });
 });
+
+function createThrowingStorage() {
+  return {
+    getItem: () => { throw new Error('storage unavailable'); },
+    setItem: () => { throw new Error('storage unavailable'); },
+    removeItem: () => { throw new Error('storage unavailable'); },
+  };
+}
+
+describe('persistence — storage 자체가 실패하는 경우', () => {
+  it('loadState는 storage.getItem이 throw해도 null을 반환한다', () => {
+    expect(loadState(createThrowingStorage())).toBeNull();
+  });
+
+  it('saveState는 storage.setItem이 throw해도 예외를 던지지 않는다', () => {
+    expect(() => saveState({ currency: { gold: 1 } }, createThrowingStorage())).not.toThrow();
+  });
+
+  it('clearState는 storage.removeItem이 throw해도 예외를 던지지 않는다', () => {
+    expect(() => clearState(createThrowingStorage())).not.toThrow();
+  });
+});

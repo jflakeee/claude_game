@@ -5,11 +5,20 @@ function resolveStorage(storage) {
 }
 
 export function saveState(state, storage) {
-  resolveStorage(storage).setItem(STORAGE_KEY, JSON.stringify(state));
+  try {
+    resolveStorage(storage).setItem(STORAGE_KEY, JSON.stringify(state));
+  } catch (e) {
+    // storage unavailable or quota exceeded — continue without persisting this save
+  }
 }
 
 export function loadState(storage) {
-  const raw = resolveStorage(storage).getItem(STORAGE_KEY);
+  let raw;
+  try {
+    raw = resolveStorage(storage).getItem(STORAGE_KEY);
+  } catch (e) {
+    return null;
+  }
   if (!raw) return null;
   try {
     return JSON.parse(raw);
@@ -19,5 +28,9 @@ export function loadState(storage) {
 }
 
 export function clearState(storage) {
-  resolveStorage(storage).removeItem(STORAGE_KEY);
+  try {
+    resolveStorage(storage).removeItem(STORAGE_KEY);
+  } catch (e) {
+    // storage unavailable — nothing to clear
+  }
 }
