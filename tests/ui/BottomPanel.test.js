@@ -25,8 +25,10 @@ describe('renderTab', () => {
     expect(renderTab('skills', baseState())).toContain('스킬 포인트 2');
   });
 
-  it('settings 탭: 자동 장착 최소 등급을 보여준다', () => {
-    expect(renderTab('settings', baseState())).toContain('normal');
+  it('settings 탭: 자동 장착 최소 등급과 변경 버튼을 보여준다', () => {
+    const html = renderTab('settings', baseState());
+    expect(html).toContain('normal');
+    expect(html).toContain('data-action="cycle-auto-equip-grade"');
   });
 
   it('shop 탭: 보유 골드를 보여준다', () => {
