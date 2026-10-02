@@ -42,6 +42,11 @@ export class CombatScene extends Phaser.Scene {
       .on('pointerdown', () => this.endCombat());
 
     this.cursors = this.input.keyboard ? this.input.keyboard.createCursorKeys() : null;
+    this.input.on('pointermove', (pointer) => {
+      if (!pointer.isDown) return;
+      this.player.x = Phaser.Math.Clamp(pointer.x, 10, this.scale.width - 10);
+      this.player.y = Phaser.Math.Clamp(pointer.y, 10, this.scale.height - 10);
+    });
     this.enemyHitTimer = this.time.addEvent({
       delay: ENEMY_HIT_INTERVAL_MS,
       loop: true,
