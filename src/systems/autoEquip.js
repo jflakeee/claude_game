@@ -8,7 +8,7 @@ export function shouldAutoEquip(droppedItem, currentEquipped, minGrade) {
   if (gradeRank(droppedItem.grade) < gradeRank(minGrade)) return false;
   const current = currentEquipped.find((i) => i.slot === droppedItem.slot);
   if (!current) return true;
-  return statTotal(droppedItem) >= statTotal(current);
+  return statTotal(droppedItem) > statTotal(current);
 }
 
 // Mutates character.equippedItems in place (by design; Task 9 depends on this).

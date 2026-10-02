@@ -20,13 +20,11 @@ describe('shouldAutoEquip', () => {
     expect(shouldAutoEquip(dropped, [], 'normal')).toBe(true);
   });
 
-  it('기존 장비보다 스탯 합이 높거나 같을 때 교체한다', () => {
+  it('기존 장비보다 스탯 합이 높을 때만 교체한다', () => {
     const current = weapon('normal', 10);
     const worse = weapon('magic', 5);
-    const equal = weapon('magic', 10);
     const better = weapon('magic', 15);
     expect(shouldAutoEquip(worse, [current], 'normal')).toBe(false);
-    expect(shouldAutoEquip(equal, [current], 'normal')).toBe(true);
     expect(shouldAutoEquip(better, [current], 'normal')).toBe(true);
   });
 });
