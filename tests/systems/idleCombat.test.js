@@ -62,4 +62,23 @@ describe('resolveIdleKill', () => {
     expect(inventory).toHaveLength(0);
     expect(character.equippedItems).toHaveLength(1);
   });
+
+  it('자동 장착으로 기존 장비가 교체되면 인벤토리로 회수된다', () => {
+    const existing = { id: 'old', name: '기존 장비', grade: 'normal', statBonus: { atk: 1 }, slot: 'weapon' };
+    const character = { equippedItems: [existing], exp: 0 };
+    const currency = { gold: 0 };
+    const inventory = [];
+
+    resolveIdleKill({
+      character,
+      currency,
+      inventory,
+      autoEquipMinGrade: 'normal',
+      randomFn: () => 0,
+    });
+
+    expect(character.equippedItems).toHaveLength(1);
+    expect(character.equippedItems[0]).not.toBe(existing);
+    expect(inventory).toContainEqual(existing);
+  });
 });

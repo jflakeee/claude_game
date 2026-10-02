@@ -38,6 +38,8 @@ export function resolveIdleKill({ character, currency, inventory, autoEquipMinGr
   const autoEquipResult = autoEquip(item, character, autoEquipMinGrade);
   if (!autoEquipResult.equipped) {
     addItemToInventory(inventory, item, currency, false);
+  } else if (autoEquipResult.replaced) {
+    addItemToInventory(inventory, autoEquipResult.replaced, currency, false);
   }
   return { goldDrop, expDrop, item, autoEquipResult };
 }
