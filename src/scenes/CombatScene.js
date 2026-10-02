@@ -7,6 +7,7 @@ import {
   settleCombat,
   COMBAT_DURATION_MS,
 } from '../systems/survivalCombat.js';
+import { applyLevelUps } from '../systems/leveling.js';
 
 const ENEMY_HIT_INTERVAL_MS = 800;
 const ENEMY_HIT_DAMAGE = 5;
@@ -72,6 +73,7 @@ export class CombatScene extends Phaser.Scene {
     if (this.enemyHitTimer) this.enemyHitTimer.remove();
     const state = store.getState();
     settleCombat(this.session, state.currency, state.character);
+    applyLevelUps(state.character);
     store.notify();
     this.scene.start('IdleScene');
   }

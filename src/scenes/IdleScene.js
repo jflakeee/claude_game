@@ -7,6 +7,7 @@ import {
   STAGE_LENGTH_PX,
   IDLE_COMBAT_TICK_MS,
 } from '../systems/idleCombat.js';
+import { applyLevelUps } from '../systems/leveling.js';
 
 export class IdleScene extends Phaser.Scene {
   constructor() {
@@ -46,6 +47,7 @@ export class IdleScene extends Phaser.Scene {
         inventory: state.inventory,
         autoEquipMinGrade: state.settings.autoEquipMinGrade,
       });
+      applyLevelUps(state.character);
       store.notify();
     }
   }
