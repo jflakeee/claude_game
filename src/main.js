@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { IdleScene } from './scenes/IdleScene.js';
+import { CombatScene } from './scenes/CombatScene.js';
 
 new Phaser.Game({
   type: Phaser.AUTO,
@@ -7,5 +8,5 @@ new Phaser.Game({
   height: 640,
   parent: 'game-container',
   backgroundColor: '#1b1b1b',
-  scene: [IdleScene],
+  scene: [IdleScene, CombatScene],
 });
