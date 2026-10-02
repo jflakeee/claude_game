@@ -8,6 +8,7 @@ import {
   COMBAT_DURATION_MS,
 } from '../systems/survivalCombat.js';
 import { applyLevelUps } from '../systems/leveling.js';
+import { computeEffectiveStats } from '../systems/effectiveStats.js';
 
 const ENEMY_HIT_INTERVAL_MS = 800;
 const ENEMY_HIT_DAMAGE = 5;
@@ -22,6 +23,9 @@ export class CombatScene extends Phaser.Scene {
   create() {
     this.session = createCombatSession();
     this.playerHp = 100;
+
+    const state = store.getState();
+    this.effectiveStats = computeEffectiveStats(state.character);
 
     this.add.rectangle(0, 0, this.scale.width, this.scale.height, 0x222222).setOrigin(0, 0);
     this.player = this.add.rectangle(this.scale.width / 2, this.scale.height / 2, 20, 20, 0xe07856);
@@ -39,7 +43,8 @@ export class CombatScene extends Phaser.Scene {
       delay: ENEMY_HIT_INTERVAL_MS,
       loop: true,
       callback: () => {
-        this.playerHp = Math.max(0, this.playerHp - ENEMY_HIT_DAMAGE);
+        const mitigatedDamage = Math.max(1, ENEMY_HIT_DAMAGE - Math.floor(this.effectiveStats.def / 10));
+        this.playerHp = Math.max(0, this.playerHp - mitigatedDamage);
       },
     });
   }

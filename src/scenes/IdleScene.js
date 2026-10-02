@@ -8,6 +8,7 @@ import {
   IDLE_COMBAT_TICK_MS,
 } from '../systems/idleCombat.js';
 import { applyLevelUps } from '../systems/leveling.js';
+import { computeEffectiveStats } from '../systems/effectiveStats.js';
 
 export class IdleScene extends Phaser.Scene {
   constructor() {
@@ -38,9 +39,12 @@ export class IdleScene extends Phaser.Scene {
     advanceIdleProgress(this.progress, delta);
     this.character.x = 40 + (this.progress.distancePx / STAGE_LENGTH_PX) * this.trackWidth;
 
-    if (this.tickAccumulator >= IDLE_COMBAT_TICK_MS) {
-      this.tickAccumulator -= IDLE_COMBAT_TICK_MS;
-      const state = store.getState();
+    const state = store.getState();
+    const effectiveStats = computeEffectiveStats(state.character);
+    const killIntervalMs = Math.max(300, IDLE_COMBAT_TICK_MS - effectiveStats.atk * 5);
+
+    if (this.tickAccumulator >= killIntervalMs) {
+      this.tickAccumulator -= killIntervalMs;
       resolveIdleKill({
         character: state.character,
         currency: state.currency,
