@@ -1,6 +1,26 @@
 import Phaser from 'phaser';
 import { IdleScene } from './scenes/IdleScene.js';
 import { CombatScene } from './scenes/CombatScene.js';
+import { store } from './state/globalStore.js';
+import { saveState, loadState } from './state/persistence.js';
+import { mountBottomPanel } from './ui/BottomPanel.js';
+
+const AUTOSAVE_INTERVAL_MS = 10000;
+
+const saved = loadState();
+if (saved) {
+  store.setState(saved);
+}
+
+mountBottomPanel(document.getElementById('bottom-panel'));
+
+setInterval(() => {
+  saveState(store.getState());
+}, AUTOSAVE_INTERVAL_MS);
+
+window.addEventListener('beforeunload', () => {
+  saveState(store.getState());
+});
 
 new Phaser.Game({
   type: Phaser.AUTO,
