@@ -48,6 +48,7 @@ export class IdleScene extends Phaser.Scene {
         character: state.character,
         currency: state.currency,
         inventory: state.inventory,
+        scrapbook: state.scrapbook,
         autoEquipMinGrade: state.settings.autoEquipMinGrade,
       });
       applyLevelUps(state.character);

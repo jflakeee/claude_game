@@ -31,10 +31,13 @@ describe('resolveIdleKill', () => {
     const currency = { gold: 0 };
     const inventory = [];
 
+    const scrapbook = [];
+
     const result = resolveIdleKill({
       character,
       currency,
       inventory,
+      scrapbook,
       autoEquipMinGrade: 'epic',
       randomFn: () => 0,
     });
@@ -50,10 +53,13 @@ describe('resolveIdleKill', () => {
     const currency = { gold: 0 };
     const inventory = [];
 
+    const scrapbook = [];
+
     const result = resolveIdleKill({
       character,
       currency,
       inventory,
+      scrapbook,
       autoEquipMinGrade: 'normal',
       randomFn: () => 0,
     });
@@ -63,22 +69,25 @@ describe('resolveIdleKill', () => {
     expect(character.equippedItems).toHaveLength(1);
   });
 
-  it('자동 장착으로 기존 장비가 교체되면 인벤토리로 회수된다', () => {
+  it('자동 장착으로 기존 장비가 교체되면 스크랩북으로 회수된다', () => {
     const existing = { id: 'old', name: '기존 장비', grade: 'normal', statBonus: {}, slot: 'weapon' };
     const character = { equippedItems: [existing], exp: 0 };
     const currency = { gold: 0 };
     const inventory = [];
+    const scrapbook = [];
 
     resolveIdleKill({
       character,
       currency,
       inventory,
+      scrapbook,
       autoEquipMinGrade: 'normal',
       randomFn: () => 0,
     });
 
     expect(character.equippedItems).toHaveLength(1);
     expect(character.equippedItems[0]).not.toBe(existing);
-    expect(inventory).toContainEqual(existing);
+    expect(scrapbook).toContainEqual(existing);
+    expect(inventory).toHaveLength(0);
   });
 });

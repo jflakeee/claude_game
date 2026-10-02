@@ -8,6 +8,7 @@ describe('createStore', () => {
     expect(state.character.level).toBe(1);
     expect(state.currency.gold).toBe(0);
     expect(state.inventory).toEqual([]);
+    expect(state.scrapbook).toEqual([]);
     expect(state.settings).toEqual({ autoEquipMinGrade: 'normal' });
     expect(state.runState.mode).toBe('idle');
   });

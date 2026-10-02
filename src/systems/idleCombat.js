@@ -20,7 +20,7 @@ export function advanceIdleProgress(progress, deltaMs) {
   return false;
 }
 
-export function resolveIdleKill({ character, currency, inventory, autoEquipMinGrade, randomFn = Math.random }) {
+export function resolveIdleKill({ character, currency, inventory, scrapbook, autoEquipMinGrade, randomFn = Math.random }) {
   const goldDrop = 2;
   const expDrop = 3;
   currency.gold += goldDrop;
@@ -39,7 +39,7 @@ export function resolveIdleKill({ character, currency, inventory, autoEquipMinGr
   if (!autoEquipResult.equipped) {
     addItemToInventory(inventory, item, currency, false);
   } else if (autoEquipResult.replaced) {
-    addItemToInventory(inventory, autoEquipResult.replaced, currency, false);
+    scrapbook.push(autoEquipResult.replaced);
   }
   return { goldDrop, expDrop, item, autoEquipResult };
 }

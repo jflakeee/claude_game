@@ -5,6 +5,7 @@ export function createStore() {
     character: createCharacter(),
     currency: createCurrency(),
     inventory: [],
+    scrapbook: [],
     settings: { autoEquipMinGrade: 'normal' },
     runState: createRunState(),
   };

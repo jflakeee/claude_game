@@ -1,17 +1,26 @@
 import { store } from '../state/globalStore.js';
 import { GRADE_ORDER } from '../data/dropTable.js';
+import { itemGoldValue } from '../systems/inventory.js';
+import { restoreFromScrapbook } from '../systems/scrapbook.js';
 
 const TABS = ['equipment', 'skills', 'settings', 'shop'];
 const TAB_LABELS = { equipment: '장비', skills: '스킬', settings: '설정', shop: '상점' };
 
 export function renderTab(tab, state) {
   if (tab === 'equipment') {
-    if (state.character.equippedItems.length === 0) {
-      return '<ul><li>장착한 장비 없음</li></ul>';
-    }
-    return `<ul>${state.character.equippedItems
-      .map((i) => `<li>${i.name} (${i.grade})</li>`)
-      .join('')}</ul>`;
+    const equippedHtml = state.character.equippedItems.length === 0
+      ? '<li>장착한 장비 없음</li>'
+      : state.character.equippedItems.map((i) => `<li>${i.name} (${i.grade})</li>`).join('');
+    const scrapbook = state.scrapbook || [];
+    const scrapbookHtml = scrapbook.length === 0
+      ? '<p>스크랩북이 비어 있습니다.</p>'
+      : `<ul>${scrapbook
+          .map(
+            (i) =>
+              `<li>${i.name} (${i.grade}) · ${itemGoldValue(i)}G <button data-action="restore-scrapbook-item" data-item-id="${i.id}" class="mock-button">복원</button></li>`
+          )
+          .join('')}</ul>`;
+    return `<ul>${equippedHtml}</ul><div class="section"><p class="label">스크랩북</p>${scrapbookHtml}</div>`;
   }
   if (tab === 'skills') {
     return `<p>레벨 ${state.character.level} · 스킬 포인트 ${state.character.skillPoints}</p>`;
@@ -51,12 +60,22 @@ export function mountBottomPanel(container) {
   });
 
   content.addEventListener('click', (event) => {
-    const button = event.target.closest('[data-action="cycle-auto-equip-grade"]');
-    if (!button) return;
-    const current = store.getState().settings.autoEquipMinGrade;
-    const currentIndex = GRADE_ORDER.indexOf(current);
-    const nextGrade = GRADE_ORDER[(currentIndex + 1) % GRADE_ORDER.length];
-    store.setState({ settings: { ...store.getState().settings, autoEquipMinGrade: nextGrade } });
+    const cycleBtn = event.target.closest('[data-action="cycle-auto-equip-grade"]');
+    if (cycleBtn) {
+      const current = store.getState().settings.autoEquipMinGrade;
+      const currentIndex = GRADE_ORDER.indexOf(current);
+      const nextGrade = GRADE_ORDER[(currentIndex + 1) % GRADE_ORDER.length];
+      store.setState({ settings: { ...store.getState().settings, autoEquipMinGrade: nextGrade } });
+      return;
+    }
+
+    const restoreBtn = event.target.closest('[data-action="restore-scrapbook-item"]');
+    if (restoreBtn) {
+      const state = store.getState();
+      restoreFromScrapbook(state.scrapbook, state.character, state.currency, restoreBtn.dataset.itemId);
+      store.notify();
+      return;
+    }
   });
 
   store.subscribe(render);

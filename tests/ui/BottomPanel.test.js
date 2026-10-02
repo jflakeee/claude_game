@@ -5,6 +5,7 @@ function baseState() {
   return {
     character: { level: 3, skillPoints: 2, equippedItems: [] },
     currency: { gold: 120 },
+    scrapbook: [],
     settings: { autoEquipMinGrade: 'normal' },
   };
 }
@@ -18,6 +19,15 @@ describe('renderTab', () => {
     const state = baseState();
     state.character.equippedItems = [{ name: '녹슨 검', grade: 'normal' }];
     expect(renderTab('equipment', state)).toContain('녹슨 검 (normal)');
+  });
+
+  it('equipment 탭: 스크랩북에 아이템이 있으면 복원 버튼과 함께 보여준다', () => {
+    const state = baseState();
+    state.scrapbook = [{ id: 'x1', name: '교체된 검', grade: 'rare', statBonus: {}, slot: 'weapon' }];
+    const html = renderTab('equipment', state);
+    expect(html).toContain('교체된 검 (rare)');
+    expect(html).toContain('data-action="restore-scrapbook-item"');
+    expect(html).toContain('data-item-id="x1"');
   });
 
   it('skills 탭: 레벨과 스킬 포인트를 보여준다', () => {
