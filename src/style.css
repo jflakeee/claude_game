@@ -1,0 +1,43 @@
+html, body {
+  margin: 0;
+  padding: 0;
+  background: #111;
+  color: #eee;
+  font-family: system-ui, sans-serif;
+}
+
+#app {
+  display: flex;
+  flex-direction: column;
+  width: 360px;
+  height: 100vh;
+  margin: 0 auto;
+}
+
+#game-container {
+  flex: 7;
+}
+
+#bottom-panel {
+  flex: 3;
+  background: #1b1b1b;
+  overflow-y: auto;
+}
+
+.tab-bar {
+  display: flex;
+}
+
+.tab-button {
+  flex: 1;
+  padding: 8px;
+  background: #222;
+  color: #ccc;
+  border: none;
+  border-bottom: 2px solid #444;
+}
+
+.tab-content {
+  padding: 8px;
+  font-size: 13px;
+}
