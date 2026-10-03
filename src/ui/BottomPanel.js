@@ -91,11 +91,15 @@ export function mountBottomPanel(container) {
     const deltaY = event.clientY - dragStartY;
     dragStartY = null;
 
-    if (deltaY > 40) {
+    if (deltaY > 15) {
       container.classList.add('minimized');
-    } else if (deltaY < -10 || Math.abs(deltaY) <= 5) {
+    } else {
       container.classList.remove('minimized');
     }
+  });
+
+  handle.addEventListener('pointercancel', () => {
+    dragStartY = null;
   });
 
   store.subscribe(render);
