@@ -35,4 +35,19 @@ describe('pullGacha', () => {
     expect(result.autoEquipResult.equipped).toBe(true);
     expect(args.inventory).toHaveLength(0);
   });
+
+  it('자동장착으로 기존 장비가 교체되면 scrapbook으로 회수된다', () => {
+    const existing = { id: 'old', name: '기존 장비', grade: 'normal', statBonus: {}, slot: 'weapon' };
+    const args = baseArgs({
+      character: { equippedItems: [existing] },
+      autoEquipMinGrade: 'normal',
+    });
+
+    const result = pullGacha(args);
+
+    expect(result.autoEquipResult.equipped).toBe(true);
+    expect(result.autoEquipResult.replaced).toBe(existing);
+    expect(args.scrapbook).toContainEqual(existing);
+    expect(args.character.equippedItems).toEqual([result.item]);
+  });
 });
