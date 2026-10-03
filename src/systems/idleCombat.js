@@ -1,6 +1,6 @@
-import { rollGrade, gradeRank } from '../data/dropTable.js';
-import { autoEquip } from './autoEquip.js';
-import { addItemToInventory } from './inventory.js';
+import { rollItem } from "./items.js";
+import { autoEquip } from "./autoEquip.js";
+import { addItemToInventory } from "./inventory.js";
 
 export const STAGE_LENGTH_PX = 2000;
 export const IDLE_MOVE_SPEED_PX_PER_S = 50;
@@ -20,20 +20,20 @@ export function advanceIdleProgress(progress, deltaMs) {
   return false;
 }
 
-export function resolveIdleKill({ character, currency, inventory, scrapbook, autoEquipMinGrade, randomFn = Math.random }) {
+export function resolveIdleKill({
+  character,
+  currency,
+  inventory,
+  scrapbook,
+  autoEquipMinGrade,
+  randomFn = Math.random,
+}) {
   const goldDrop = 2;
   const expDrop = 3;
   currency.gold += goldDrop;
   character.exp += expDrop;
 
-  const grade = rollGrade(randomFn);
-  const item = {
-    id: `item_${Date.now()}_${Math.floor(randomFn() * 100000)}`,
-    name: `${grade} 장비`,
-    grade,
-    statBonus: { atk: gradeRank(grade) + 1, def: gradeRank(grade) + 1 },
-    slot: 'weapon',
-  };
+  const item = rollItem(randomFn);
 
   const autoEquipResult = autoEquip(item, character, autoEquipMinGrade);
   if (!autoEquipResult.equipped) {

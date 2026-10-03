@@ -1,0 +1,23 @@
+const {chromium}=require(process.env.PLAYWRIGHT_MODULE||'C:/Users/a/node_modules/playwright-core');
+const fs=require('node:fs');
+const out='docs/qa/2026-10-03/implementation';fs.mkdirSync(out,{recursive:true});
+(async()=>{
+ const browser=await chromium.launch({headless:true});const context=await browser.newContext({viewport:{width:390,height:844},isMobile:true,hasTouch:true});
+ const page=await context.newPage();const errors=[];page.on('pageerror',e=>errors.push(e.message));
+ await page.goto('http://127.0.0.1:5173/claude_game/',{waitUntil:'networkidle'});await page.waitForTimeout(1200);
+ await page.screenshot({path:out+'/01-idle.png'});
+ console.log('initial',await page.evaluate(()=>({text:document.body.innerText,canvas:document.querySelector('canvas')?.getBoundingClientRect().toJSON()})),errors);
+ await page.getByRole('tab',{name:'스킬'}).click();await page.waitForTimeout(150);await page.screenshot({path:out+'/02-skills.png'});
+ await page.setViewportSize({width:360,height:640});await page.waitForTimeout(250);await page.screenshot({path:out+'/03-small.png'});
+ await page.locator('canvas').tap({position:{x:160,y:180}});await page.waitForTimeout(5000);await page.screenshot({path:out+'/04-combat.png'});
+ console.log('combat',await page.evaluate(()=>({text:document.body.innerText,canvas:document.querySelector('canvas')?.getBoundingClientRect().toJSON(),enemies:window.__claudeGame?.game.scene.getScene('CombatScene').arena?.enemies.length})),errors);
+ await page.getByRole('button',{name:'나가기'}).click();await page.waitForTimeout(200);await page.screenshot({path:out+'/05-result.png'});
+ await page.getByRole('button',{name:'탐험 계속'}).click();
+ await page.setViewportSize({width:390,height:844});await page.waitForTimeout(200);
+ const handle=await page.locator('.panel-handle').boundingBox();await page.mouse.move(handle.x+handle.width/2,handle.y+10);await page.mouse.down();await page.mouse.move(handle.x+handle.width/2,handle.y+60,{steps:10});await page.mouse.up();await page.waitForTimeout(300);
+ console.log('minimized',await page.locator('#bottom-panel').getAttribute('class'));
+ await page.screenshot({path:out+'/06-minimized.png'});
+ await page.locator('.panel-handle').click();await page.getByRole('tab',{name:'상점'}).click();await page.waitForTimeout(200);await page.screenshot({path:out+'/07-shop.png'});
+ await page.getByRole('tab',{name:'설정'}).click();await page.waitForTimeout(200);await page.screenshot({path:out+'/08-settings.png'});
+ console.log('errors',errors);await browser.close();
+})().catch(e=>{console.error(e);process.exit(1)});

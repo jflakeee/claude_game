@@ -1,0 +1,31 @@
+const {chromium}=require(process.env.PLAYWRIGHT_MODULE||'C:/Users/a/node_modules/playwright-core');
+const assert=require('node:assert/strict'),fs=require('node:fs');
+const out='docs/qa/2026-10-03/production';fs.mkdirSync(out,{recursive:true});
+(async()=>{
+ const browser=await chromium.launch({headless:true});const context=await browser.newContext({viewport:{width:390,height:844},isMobile:true,hasTouch:true});const page=await context.newPage();
+ const errors=[],checks=[];page.on('pageerror',e=>errors.push(e.message));
+ const shot=name=>page.screenshot({path:`${out}/${name}.png`});
+ await page.goto('https://www.fungood.co.kr/claude_game/?verify=completed-mvp',{waitUntil:'networkidle'});
+ await page.getByRole('heading',{name:'Claude Game',exact:true}).waitFor();
+ const bundle=await page.locator('script[type="module"]').getAttribute('src');assert.ok(bundle.includes('index-mwaI4NqG'));
+ assert.equal(await page.evaluate(()=>typeof window.__claudeGame),'undefined');
+ await shot('01-idle');
+ for(const[width,height]of [[320,568],[360,640],[390,844]]){
+  await page.setViewportSize({width,height});await page.waitForTimeout(150);
+  const boxes=await page.evaluate(()=>({canvas:document.querySelector('canvas').getBoundingClientRect().toJSON(),parent:document.querySelector('#game-container').getBoundingClientRect().toJSON(),panel:document.querySelector('#bottom-panel').getBoundingClientRect().toJSON()}));
+  assert.ok(Math.abs(boxes.canvas.height-boxes.parent.height)<1);assert.ok(boxes.panel.height>120);await shot(`02-mobile-${width}`);
+ }checks.push('live responsive layouts');
+ await page.locator('.panel-handle').click();await page.waitForTimeout(100);await page.locator('.panel-handle').click();await page.waitForTimeout(100);
+ assert.ok(await page.evaluate(()=>Math.abs(document.querySelector('canvas').height-document.querySelector('#game-container').clientHeight)<1));checks.push('canvas resize after panel expand');
+ await page.getByRole('tab',{name:'스킬'}).click();await page.waitForTimeout(100);await shot('03-skills');
+ await page.locator('canvas').tap({position:{x:160,y:160}});await page.getByRole('button',{name:'나가기'}).waitFor();await page.waitForTimeout(7000);
+ assert.equal((await page.locator('canvas').boundingBox()).height,844);assert.match(await page.locator('#combat-kills').innerText(),/[1-9][0-9]* 처치/);await shot('04-combat');checks.push('live enemies, auto attack, rewards and fullscreen');
+ await page.getByRole('button',{name:'나가기'}).click();await page.getByRole('heading',{name:'안전하게 귀환'}).waitFor();await shot('05-result');await page.getByRole('button',{name:'탐험 계속'}).click();
+ await page.getByRole('tab',{name:'상점'}).click();await page.getByRole('button',{name:'뽑기 (20골드)'}).waitFor();
+ await page.waitForFunction(()=>!document.querySelector('[data-action="pull-gacha"]').disabled);await page.getByRole('button',{name:'뽑기 (20골드)'}).click();await page.waitForTimeout(100);
+ assert.match(await page.locator('.tab-content').innerText(),/방금 획득한 장비/);await shot('06-shop');checks.push('live gacha feedback');
+ await page.getByRole('tab',{name:'설정'}).click();await page.getByRole('switch',{name:'자동 진행',exact:true}).click();await page.waitForTimeout(100);await shot('07-settings');
+ await page.reload({waitUntil:'networkidle'});await page.getByRole('tab',{name:'설정'}).click();await page.waitForTimeout(100);assert.equal(await page.getByRole('switch',{name:'자동 진행',exact:true}).getAttribute('aria-checked'),'false');checks.push('live save restore');
+ await page.goto('https://www.fungood.co.kr/game_portal/#/play/claude-game',{waitUntil:'networkidle'});const game=page.frameLocator('iframe');await game.getByRole('heading',{name:'Claude Game',exact:true}).waitFor();await shot('08-portal');checks.push('portal iframe serves new game');
+ assert.deepEqual(errors,[]);fs.writeFileSync(`${out}/results.json`,JSON.stringify({bundle,checks,errors},null,2));console.log({bundle,checks,errors});await browser.close();
+})().catch(e=>{console.error(e);process.exit(1)});

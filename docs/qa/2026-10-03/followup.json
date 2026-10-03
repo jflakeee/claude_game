@@ -1,0 +1,12 @@
+{
+  "touchMinimized": false,
+  "exitRestoresPanel": true,
+  "reloadReturnsIdle": true,
+  "savedRunState": {
+    "mode": "idle",
+    "stageIndex": 0,
+    "combatTimer": 0,
+    "distancePx": 37.45116666666664
+  },
+  "savedHasCombatSession": false
+}

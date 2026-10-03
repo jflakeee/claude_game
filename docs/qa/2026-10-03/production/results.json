@@ -1,0 +1,12 @@
+{
+  "bundle": "/claude_game/assets/index-mwaI4NqG.js",
+  "checks": [
+    "live responsive layouts",
+    "canvas resize after panel expand",
+    "live enemies, auto attack, rewards and fullscreen",
+    "live gacha feedback",
+    "live save restore",
+    "portal iframe serves new game"
+  ],
+  "errors": []
+}

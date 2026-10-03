@@ -1,0 +1,15 @@
+{
+  "checks": [
+    "skill investment",
+    "inventory equip and scrapbook restore",
+    "gacha result",
+    "sound, notifications, auto progress settings",
+    "touch drag minimize and tap expand",
+    "five responsive sizes",
+    "repeated fullscreen entry and exit",
+    "interrupted combat settlement once",
+    "failure settlement with collision fixture",
+    "real-time 3 minute touch survival clear"
+  ],
+  "errors": []
+}

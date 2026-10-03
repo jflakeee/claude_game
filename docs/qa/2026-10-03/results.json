@@ -1,0 +1,2918 @@
+{
+  "errors": [],
+  "requestsFailed": [],
+  "checks": {
+    "initial": {
+      "text": "장비\n스킬\n설정\n상점\n장착한 장비 없음\n\n스크랩북\n\n스크랩북이 비어 있습니다.",
+      "saved": null,
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "canvas": {
+        "x": 15,
+        "y": 0,
+        "width": 360,
+        "height": 640,
+        "top": 0,
+        "right": 375,
+        "bottom": 640,
+        "left": 15
+      },
+      "panel": {
+        "x": 15,
+        "y": 644,
+        "width": 360,
+        "height": 200,
+        "top": 644,
+        "right": 375,
+        "bottom": 844,
+        "left": 15
+      },
+      "documentHeight": 844
+    },
+    "skillsBefore": {
+      "text": "장비\n스킬\n설정\n상점\n\n레벨 2 · 스킬 포인트 1\n\n강타 Lv.0/5 투자\n\n철갑 Lv.0/5 투자",
+      "saved": {
+        "character": {
+          "level": 1,
+          "exp": 27,
+          "stats": {
+            "atk": 10,
+            "def": 5,
+            "crit": 0.05
+          },
+          "equippedItems": [
+            {
+              "id": "item_1791010551977_40779",
+              "name": "rare 장비",
+              "grade": "rare",
+              "statBonus": {
+                "atk": 3,
+                "def": 3
+              },
+              "slot": "weapon"
+            }
+          ],
+          "skillPoints": 0,
+          "skills": {}
+        },
+        "currency": {
+          "gold": 18
+        },
+        "inventory": [
+          {
+            "id": "item_1791010545359_90045",
+            "name": "normal 장비",
+            "grade": "normal",
+            "statBonus": {
+              "atk": 1,
+              "def": 1
+            },
+            "slot": "weapon"
+          },
+          {
+            "id": "item_1791010546309_7905",
+            "name": "normal 장비",
+            "grade": "normal",
+            "statBonus": {
+              "atk": 1,
+              "def": 1
+            },
+            "slot": "weapon"
+          },
+          {
+            "id": "item_1791010547259_13555",
+            "name": "normal 장비",
+            "grade": "normal",
+            "statBonus": {
+              "atk": 1,
+              "def": 1
+            },
+            "slot": "weapon"
+          },
+          {
+            "id": "item_1791010548192_79259",
+            "name": "normal 장비",
+            "grade": "normal",
+            "statBonus": {
+              "atk": 1,
+              "def": 1
+            },
+            "slot": "weapon"
+          },
+          {
+            "id": "item_1791010549142_29090",
+            "name": "normal 장비",
+            "grade": "normal",
+            "statBonus": {
+              "atk": 1,
+              "def": 1
+            },
+            "slot": "weapon"
+          },
+          {
+            "id": "item_1791010550092_63422",
+            "name": "normal 장비",
+            "grade": "normal",
+            "statBonus": {
+              "atk": 1,
+              "def": 1
+            },
+            "slot": "weapon"
+          },
+          {
+            "id": "item_1791010551041_62560",
+            "name": "normal 장비",
+            "grade": "normal",
+            "statBonus": {
+              "atk": 1,
+              "def": 1
+            },
+            "slot": "weapon"
+          }
+        ],
+        "scrapbook": [
+          {
+            "id": "item_1791010544426_73342",
+            "name": "normal 장비",
+            "grade": "normal",
+            "statBonus": {
+              "atk": 1,
+              "def": 1
+            },
+            "slot": "weapon"
+          }
+        ],
+        "settings": {
+          "autoEquipMinGrade": "normal"
+        },
+        "runState": {
+          "mode": "idle",
+          "stageIndex": 0,
+          "combatTimer": 0,
+          "distancePx": 468.16066666667035
+        }
+      },
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "canvas": {
+        "x": 15,
+        "y": 0,
+        "width": 360,
+        "height": 640,
+        "top": 0,
+        "right": 375,
+        "bottom": 640,
+        "left": 15
+      },
+      "panel": {
+        "x": 15,
+        "y": 644,
+        "width": 360,
+        "height": 200,
+        "top": 644,
+        "right": 375,
+        "bottom": 844,
+        "left": 15
+      },
+      "documentHeight": 844
+    },
+    "skillsAfter": {
+      "text": "장비\n스킬\n설정\n상점\n\n레벨 2 · 스킬 포인트 0\n\n강타 Lv.1/5 투자\n\n철갑 Lv.0/5 투자",
+      "saved": {
+        "character": {
+          "level": 1,
+          "exp": 27,
+          "stats": {
+            "atk": 10,
+            "def": 5,
+            "crit": 0.05
+          },
+          "equippedItems": [
+            {
+              "id": "item_1791010551977_40779",
+              "name": "rare 장비",
+              "grade": "rare",
+              "statBonus": {
+                "atk": 3,
+                "def": 3
+              },
+              "slot": "weapon"
+            }
+          ],
+          "skillPoints": 0,
+          "skills": {}
+        },
+        "currency": {
+          "gold": 18
+        },
+        "inventory": [
+          {
+            "id": "item_1791010545359_90045",
+            "name": "normal 장비",
+            "grade": "normal",
+            "statBonus": {
+              "atk": 1,
+              "def": 1
+            },
+            "slot": "weapon"
+          },
+          {
+            "id": "item_1791010546309_7905",
+            "name": "normal 장비",
+            "grade": "normal",
+            "statBonus": {
+              "atk": 1,
+              "def": 1
+            },
+            "slot": "weapon"
+          },
+          {
+            "id": "item_1791010547259_13555",
+            "name": "normal 장비",
+            "grade": "normal",
+            "statBonus": {
+              "atk": 1,
+              "def": 1
+            },
+            "slot": "weapon"
+          },
+          {
+            "id": "item_1791010548192_79259",
+            "name": "normal 장비",
+            "grade": "normal",
+            "statBonus": {
+              "atk": 1,
+              "def": 1
+            },
+            "slot": "weapon"
+          },
+          {
+            "id": "item_1791010549142_29090",
+            "name": "normal 장비",
+            "grade": "normal",
+            "statBonus": {
+              "atk": 1,
+              "def": 1
+            },
+            "slot": "weapon"
+          },
+          {
+            "id": "item_1791010550092_63422",
+            "name": "normal 장비",
+            "grade": "normal",
+            "statBonus": {
+              "atk": 1,
+              "def": 1
+            },
+            "slot": "weapon"
+          },
+          {
+            "id": "item_1791010551041_62560",
+            "name": "normal 장비",
+            "grade": "normal",
+            "statBonus": {
+              "atk": 1,
+              "def": 1
+            },
+            "slot": "weapon"
+          }
+        ],
+        "scrapbook": [
+          {
+            "id": "item_1791010544426_73342",
+            "name": "normal 장비",
+            "grade": "normal",
+            "statBonus": {
+              "atk": 1,
+              "def": 1
+            },
+            "slot": "weapon"
+          }
+        ],
+        "settings": {
+          "autoEquipMinGrade": "normal"
+        },
+        "runState": {
+          "mode": "idle",
+          "stageIndex": 0,
+          "combatTimer": 0,
+          "distancePx": 468.16066666667035
+        }
+      },
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "canvas": {
+        "x": 15,
+        "y": 0,
+        "width": 360,
+        "height": 640,
+        "top": 0,
+        "right": 375,
+        "bottom": 640,
+        "left": 15
+      },
+      "panel": {
+        "x": 15,
+        "y": 644,
+        "width": 360,
+        "height": 200,
+        "top": 644,
+        "right": 375,
+        "bottom": 844,
+        "left": 15
+      },
+      "documentHeight": 844
+    },
+    "settings": {
+      "text": "장비\n스킬\n설정\n상점\n자동 장착 최소 등급: magic 등급 변경",
+      "saved": {
+        "character": {
+          "level": 1,
+          "exp": 27,
+          "stats": {
+            "atk": 10,
+            "def": 5,
+            "crit": 0.05
+          },
+          "equippedItems": [
+            {
+              "id": "item_1791010551977_40779",
+              "name": "rare 장비",
+              "grade": "rare",
+              "statBonus": {
+                "atk": 3,
+                "def": 3
+              },
+              "slot": "weapon"
+            }
+          ],
+          "skillPoints": 0,
+          "skills": {}
+        },
+        "currency": {
+          "gold": 18
+        },
+        "inventory": [
+          {
+            "id": "item_1791010545359_90045",
+            "name": "normal 장비",
+            "grade": "normal",
+            "statBonus": {
+              "atk": 1,
+              "def": 1
+            },
+            "slot": "weapon"
+          },
+          {
+            "id": "item_1791010546309_7905",
+            "name": "normal 장비",
+            "grade": "normal",
+            "statBonus": {
+              "atk": 1,
+              "def": 1
+            },
+            "slot": "weapon"
+          },
+          {
+            "id": "item_1791010547259_13555",
+            "name": "normal 장비",
+            "grade": "normal",
+            "statBonus": {
+              "atk": 1,
+              "def": 1
+            },
+            "slot": "weapon"
+          },
+          {
+            "id": "item_1791010548192_79259",
+            "name": "normal 장비",
+            "grade": "normal",
+            "statBonus": {
+              "atk": 1,
+              "def": 1
+            },
+            "slot": "weapon"
+          },
+          {
+            "id": "item_1791010549142_29090",
+            "name": "normal 장비",
+            "grade": "normal",
+            "statBonus": {
+              "atk": 1,
+              "def": 1
+            },
+            "slot": "weapon"
+          },
+          {
+            "id": "item_1791010550092_63422",
+            "name": "normal 장비",
+            "grade": "normal",
+            "statBonus": {
+              "atk": 1,
+              "def": 1
+            },
+            "slot": "weapon"
+          },
+          {
+            "id": "item_1791010551041_62560",
+            "name": "normal 장비",
+            "grade": "normal",
+            "statBonus": {
+              "atk": 1,
+              "def": 1
+            },
+            "slot": "weapon"
+          }
+        ],
+        "scrapbook": [
+          {
+            "id": "item_1791010544426_73342",
+            "name": "normal 장비",
+            "grade": "normal",
+            "statBonus": {
+              "atk": 1,
+              "def": 1
+            },
+            "slot": "weapon"
+          }
+        ],
+        "settings": {
+          "autoEquipMinGrade": "normal"
+        },
+        "runState": {
+          "mode": "idle",
+          "stageIndex": 0,
+          "combatTimer": 0,
+          "distancePx": 468.16066666667035
+        }
+      },
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "canvas": {
+        "x": 15,
+        "y": 0,
+        "width": 360,
+        "height": 640,
+        "top": 0,
+        "right": 375,
+        "bottom": 640,
+        "left": 15
+      },
+      "panel": {
+        "x": 15,
+        "y": 644,
+        "width": 360,
+        "height": 200,
+        "top": 644,
+        "right": 375,
+        "bottom": 844,
+        "left": 15
+      },
+      "documentHeight": 844
+    },
+    "shopBefore": {
+      "text": "장비\n스킬\n설정\n상점\n\n골드: 40\n\n뽑기 (20골드)",
+      "saved": {
+        "character": {
+          "level": 2,
+          "exp": 10,
+          "stats": {
+            "atk": 10,
+            "def": 5,
+            "crit": 0.05
+          },
+          "equippedItems": [
+            {
+              "id": "item_1791010551977_40779",
+              "name": "rare 장비",
+              "grade": "rare",
+              "statBonus": {
+                "atk": 3,
+                "def": 3
+              },
+              "slot": "weapon"
+            }
+          ],
+          "skillPoints": 0,
+          "skills": {
+            "power_strike": 1
+          }
+        },
+        "currency": {
+          "gold": 40
+        },
+        "inventory": [
+          {
+            "id": "item_1791010545359_90045",
+            "name": "normal 장비",
+            "grade": "normal",
+            "statBonus": {
+              "atk": 1,
+              "def": 1
+            },
+            "slot": "weapon"
+          },
+          {
+            "id": "item_1791010546309_7905",
+            "name": "normal 장비",
+            "grade": "normal",
+            "statBonus": {
+              "atk": 1,
+              "def": 1
+            },
+            "slot": "weapon"
+          },
+          {
+            "id": "item_1791010547259_13555",
+            "name": "normal 장비",
+            "grade": "normal",
+            "statBonus": {
+              "atk": 1,
+              "def": 1
+            },
+            "slot": "weapon"
+          },
+          {
+            "id": "item_1791010548192_79259",
+            "name": "normal 장비",
+            "grade": "normal",
+            "statBonus": {
+              "atk": 1,
+              "def": 1
+            },
+            "slot": "weapon"
+          },
+          {
+            "id": "item_1791010549142_29090",
+            "name": "normal 장비",
+            "grade": "normal",
+            "statBonus": {
+              "atk": 1,
+              "def": 1
+            },
+            "slot": "weapon"
+          },
+          {
+            "id": "item_1791010550092_63422",
+            "name": "normal 장비",
+            "grade": "normal",
+            "statBonus": {
+              "atk": 1,
+              "def": 1
+            },
+            "slot": "weapon"
+          },
+          {
+            "id": "item_1791010551041_62560",
+            "name": "normal 장비",
+            "grade": "normal",
+            "statBonus": {
+              "atk": 1,
+              "def": 1
+            },
+            "slot": "weapon"
+          },
+          {
+            "id": "item_1791010552913_5727",
+            "name": "normal 장비",
+            "grade": "normal",
+            "statBonus": {
+              "atk": 1,
+              "def": 1
+            },
+            "slot": "weapon"
+          },
+          {
+            "id": "item_1791010553858_67598",
+            "name": "normal 장비",
+            "grade": "normal",
+            "statBonus": {
+              "atk": 1,
+              "def": 1
+            },
+            "slot": "weapon"
+          },
+          {
+            "id": "item_1791010554792_7302",
+            "name": "normal 장비",
+            "grade": "normal",
+            "statBonus": {
+              "atk": 1,
+              "def": 1
+            },
+            "slot": "weapon"
+          },
+          {
+            "id": "item_1791010555725_85178",
+            "name": "normal 장비",
+            "grade": "normal",
+            "statBonus": {
+              "atk": 1,
+              "def": 1
+            },
+            "slot": "weapon"
+          },
+          {
+            "id": "item_1791010556659_45620",
+            "name": "magic 장비",
+            "grade": "magic",
+            "statBonus": {
+              "atk": 2,
+              "def": 2
+            },
+            "slot": "weapon"
+          },
+          {
+            "id": "item_1791010557592_54571",
+            "name": "normal 장비",
+            "grade": "normal",
+            "statBonus": {
+              "atk": 1,
+              "def": 1
+            },
+            "slot": "weapon"
+          },
+          {
+            "id": "item_1791010558525_96280",
+            "name": "normal 장비",
+            "grade": "normal",
+            "statBonus": {
+              "atk": 1,
+              "def": 1
+            },
+            "slot": "weapon"
+          },
+          {
+            "id": "item_1791010559459_73972",
+            "name": "normal 장비",
+            "grade": "normal",
+            "statBonus": {
+              "atk": 1,
+              "def": 1
+            },
+            "slot": "weapon"
+          },
+          {
+            "id": "item_1791010560393_31587",
+            "name": "magic 장비",
+            "grade": "magic",
+            "statBonus": {
+              "atk": 2,
+              "def": 2
+            },
+            "slot": "weapon"
+          },
+          {
+            "id": "item_1791010561325_42724",
+            "name": "normal 장비",
+            "grade": "normal",
+            "statBonus": {
+              "atk": 1,
+              "def": 1
+            },
+            "slot": "weapon"
+          },
+          {
+            "id": "item_1791010562258_43355",
+            "name": "normal 장비",
+            "grade": "normal",
+            "statBonus": {
+              "atk": 1,
+              "def": 1
+            },
+            "slot": "weapon"
+          }
+        ],
+        "scrapbook": [
+          {
+            "id": "item_1791010544426_73342",
+            "name": "normal 장비",
+            "grade": "normal",
+            "statBonus": {
+              "atk": 1,
+              "def": 1
+            },
+            "slot": "weapon"
+          }
+        ],
+        "settings": {
+          "autoEquipMinGrade": "magic"
+        },
+        "runState": {
+          "mode": "idle",
+          "stageIndex": 0,
+          "combatTimer": 0,
+          "distancePx": 968.139666666651
+        }
+      },
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "canvas": {
+        "x": 15,
+        "y": 0,
+        "width": 360,
+        "height": 640,
+        "top": 0,
+        "right": 375,
+        "bottom": 640,
+        "left": 15
+      },
+      "panel": {
+        "x": 15,
+        "y": 644,
+        "width": 360,
+        "height": 200,
+        "top": 644,
+        "right": 375,
+        "bottom": 844,
+        "left": 15
+      },
+      "documentHeight": 844
+    },
+    "shopAfter": {
+      "text": "장비\n스킬\n설정\n상점\n\n골드: 20\n\n뽑기 (20골드)",
+      "saved": {
+        "character": {
+          "level": 2,
+          "exp": 10,
+          "stats": {
+            "atk": 10,
+            "def": 5,
+            "crit": 0.05
+          },
+          "equippedItems": [
+            {
+              "id": "item_1791010551977_40779",
+              "name": "rare 장비",
+              "grade": "rare",
+              "statBonus": {
+                "atk": 3,
+                "def": 3
+              },
+              "slot": "weapon"
+            }
+          ],
+          "skillPoints": 0,
+          "skills": {
+            "power_strike": 1
+          }
+        },
+        "currency": {
+          "gold": 40
+        },
+        "inventory": [
+          {
+            "id": "item_1791010545359_90045",
+            "name": "normal 장비",
+            "grade": "normal",
+            "statBonus": {
+              "atk": 1,
+              "def": 1
+            },
+            "slot": "weapon"
+          },
+          {
+            "id": "item_1791010546309_7905",
+            "name": "normal 장비",
+            "grade": "normal",
+            "statBonus": {
+              "atk": 1,
+              "def": 1
+            },
+            "slot": "weapon"
+          },
+          {
+            "id": "item_1791010547259_13555",
+            "name": "normal 장비",
+            "grade": "normal",
+            "statBonus": {
+              "atk": 1,
+              "def": 1
+            },
+            "slot": "weapon"
+          },
+          {
+            "id": "item_1791010548192_79259",
+            "name": "normal 장비",
+            "grade": "normal",
+            "statBonus": {
+              "atk": 1,
+              "def": 1
+            },
+            "slot": "weapon"
+          },
+          {
+            "id": "item_1791010549142_29090",
+            "name": "normal 장비",
+            "grade": "normal",
+            "statBonus": {
+              "atk": 1,
+              "def": 1
+            },
+            "slot": "weapon"
+          },
+          {
+            "id": "item_1791010550092_63422",
+            "name": "normal 장비",
+            "grade": "normal",
+            "statBonus": {
+              "atk": 1,
+              "def": 1
+            },
+            "slot": "weapon"
+          },
+          {
+            "id": "item_1791010551041_62560",
+            "name": "normal 장비",
+            "grade": "normal",
+            "statBonus": {
+              "atk": 1,
+              "def": 1
+            },
+            "slot": "weapon"
+          },
+          {
+            "id": "item_1791010552913_5727",
+            "name": "normal 장비",
+            "grade": "normal",
+            "statBonus": {
+              "atk": 1,
+              "def": 1
+            },
+            "slot": "weapon"
+          },
+          {
+            "id": "item_1791010553858_67598",
+            "name": "normal 장비",
+            "grade": "normal",
+            "statBonus": {
+              "atk": 1,
+              "def": 1
+            },
+            "slot": "weapon"
+          },
+          {
+            "id": "item_1791010554792_7302",
+            "name": "normal 장비",
+            "grade": "normal",
+            "statBonus": {
+              "atk": 1,
+              "def": 1
+            },
+            "slot": "weapon"
+          },
+          {
+            "id": "item_1791010555725_85178",
+            "name": "normal 장비",
+            "grade": "normal",
+            "statBonus": {
+              "atk": 1,
+              "def": 1
+            },
+            "slot": "weapon"
+          },
+          {
+            "id": "item_1791010556659_45620",
+            "name": "magic 장비",
+            "grade": "magic",
+            "statBonus": {
+              "atk": 2,
+              "def": 2
+            },
+            "slot": "weapon"
+          },
+          {
+            "id": "item_1791010557592_54571",
+            "name": "normal 장비",
+            "grade": "normal",
+            "statBonus": {
+              "atk": 1,
+              "def": 1
+            },
+            "slot": "weapon"
+          },
+          {
+            "id": "item_1791010558525_96280",
+            "name": "normal 장비",
+            "grade": "normal",
+            "statBonus": {
+              "atk": 1,
+              "def": 1
+            },
+            "slot": "weapon"
+          },
+          {
+            "id": "item_1791010559459_73972",
+            "name": "normal 장비",
+            "grade": "normal",
+            "statBonus": {
+              "atk": 1,
+              "def": 1
+            },
+            "slot": "weapon"
+          },
+          {
+            "id": "item_1791010560393_31587",
+            "name": "magic 장비",
+            "grade": "magic",
+            "statBonus": {
+              "atk": 2,
+              "def": 2
+            },
+            "slot": "weapon"
+          },
+          {
+            "id": "item_1791010561325_42724",
+            "name": "normal 장비",
+            "grade": "normal",
+            "statBonus": {
+              "atk": 1,
+              "def": 1
+            },
+            "slot": "weapon"
+          },
+          {
+            "id": "item_1791010562258_43355",
+            "name": "normal 장비",
+            "grade": "normal",
+            "statBonus": {
+              "atk": 1,
+              "def": 1
+            },
+            "slot": "weapon"
+          }
+        ],
+        "scrapbook": [
+          {
+            "id": "item_1791010544426_73342",
+            "name": "normal 장비",
+            "grade": "normal",
+            "statBonus": {
+              "atk": 1,
+              "def": 1
+            },
+            "slot": "weapon"
+          }
+        ],
+        "settings": {
+          "autoEquipMinGrade": "magic"
+        },
+        "runState": {
+          "mode": "idle",
+          "stageIndex": 0,
+          "combatTimer": 0,
+          "distancePx": 968.139666666651
+        }
+      },
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "canvas": {
+        "x": 15,
+        "y": 0,
+        "width": 360,
+        "height": 640,
+        "top": 0,
+        "right": 375,
+        "bottom": 640,
+        "left": 15
+      },
+      "panel": {
+        "x": 15,
+        "y": 644,
+        "width": 360,
+        "height": 200,
+        "top": 644,
+        "right": 375,
+        "bottom": 844,
+        "left": 15
+      },
+      "documentHeight": 844
+    },
+    "equipmentBefore": {
+      "text": "장비\n스킬\n설정\n상점\nrare 장비 (rare)\n\n스크랩북\n\nnormal 장비 (normal) · 5G 복원",
+      "saved": {
+        "character": {
+          "level": 2,
+          "exp": 10,
+          "stats": {
+            "atk": 10,
+            "def": 5,
+            "crit": 0.05
+          },
+          "equippedItems": [
+            {
+              "id": "item_1791010551977_40779",
+              "name": "rare 장비",
+              "grade": "rare",
+              "statBonus": {
+                "atk": 3,
+                "def": 3
+              },
+              "slot": "weapon"
+            }
+          ],
+          "skillPoints": 0,
+          "skills": {
+            "power_strike": 1
+          }
+        },
+        "currency": {
+          "gold": 40
+        },
+        "inventory": [
+          {
+            "id": "item_1791010545359_90045",
+            "name": "normal 장비",
+            "grade": "normal",
+            "statBonus": {
+              "atk": 1,
+              "def": 1
+            },
+            "slot": "weapon"
+          },
+          {
+            "id": "item_1791010546309_7905",
+            "name": "normal 장비",
+            "grade": "normal",
+            "statBonus": {
+              "atk": 1,
+              "def": 1
+            },
+            "slot": "weapon"
+          },
+          {
+            "id": "item_1791010547259_13555",
+            "name": "normal 장비",
+            "grade": "normal",
+            "statBonus": {
+              "atk": 1,
+              "def": 1
+            },
+            "slot": "weapon"
+          },
+          {
+            "id": "item_1791010548192_79259",
+            "name": "normal 장비",
+            "grade": "normal",
+            "statBonus": {
+              "atk": 1,
+              "def": 1
+            },
+            "slot": "weapon"
+          },
+          {
+            "id": "item_1791010549142_29090",
+            "name": "normal 장비",
+            "grade": "normal",
+            "statBonus": {
+              "atk": 1,
+              "def": 1
+            },
+            "slot": "weapon"
+          },
+          {
+            "id": "item_1791010550092_63422",
+            "name": "normal 장비",
+            "grade": "normal",
+            "statBonus": {
+              "atk": 1,
+              "def": 1
+            },
+            "slot": "weapon"
+          },
+          {
+            "id": "item_1791010551041_62560",
+            "name": "normal 장비",
+            "grade": "normal",
+            "statBonus": {
+              "atk": 1,
+              "def": 1
+            },
+            "slot": "weapon"
+          },
+          {
+            "id": "item_1791010552913_5727",
+            "name": "normal 장비",
+            "grade": "normal",
+            "statBonus": {
+              "atk": 1,
+              "def": 1
+            },
+            "slot": "weapon"
+          },
+          {
+            "id": "item_1791010553858_67598",
+            "name": "normal 장비",
+            "grade": "normal",
+            "statBonus": {
+              "atk": 1,
+              "def": 1
+            },
+            "slot": "weapon"
+          },
+          {
+            "id": "item_1791010554792_7302",
+            "name": "normal 장비",
+            "grade": "normal",
+            "statBonus": {
+              "atk": 1,
+              "def": 1
+            },
+            "slot": "weapon"
+          },
+          {
+            "id": "item_1791010555725_85178",
+            "name": "normal 장비",
+            "grade": "normal",
+            "statBonus": {
+              "atk": 1,
+              "def": 1
+            },
+            "slot": "weapon"
+          },
+          {
+            "id": "item_1791010556659_45620",
+            "name": "magic 장비",
+            "grade": "magic",
+            "statBonus": {
+              "atk": 2,
+              "def": 2
+            },
+            "slot": "weapon"
+          },
+          {
+            "id": "item_1791010557592_54571",
+            "name": "normal 장비",
+            "grade": "normal",
+            "statBonus": {
+              "atk": 1,
+              "def": 1
+            },
+            "slot": "weapon"
+          },
+          {
+            "id": "item_1791010558525_96280",
+            "name": "normal 장비",
+            "grade": "normal",
+            "statBonus": {
+              "atk": 1,
+              "def": 1
+            },
+            "slot": "weapon"
+          },
+          {
+            "id": "item_1791010559459_73972",
+            "name": "normal 장비",
+            "grade": "normal",
+            "statBonus": {
+              "atk": 1,
+              "def": 1
+            },
+            "slot": "weapon"
+          },
+          {
+            "id": "item_1791010560393_31587",
+            "name": "magic 장비",
+            "grade": "magic",
+            "statBonus": {
+              "atk": 2,
+              "def": 2
+            },
+            "slot": "weapon"
+          },
+          {
+            "id": "item_1791010561325_42724",
+            "name": "normal 장비",
+            "grade": "normal",
+            "statBonus": {
+              "atk": 1,
+              "def": 1
+            },
+            "slot": "weapon"
+          },
+          {
+            "id": "item_1791010562258_43355",
+            "name": "normal 장비",
+            "grade": "normal",
+            "statBonus": {
+              "atk": 1,
+              "def": 1
+            },
+            "slot": "weapon"
+          }
+        ],
+        "scrapbook": [
+          {
+            "id": "item_1791010544426_73342",
+            "name": "normal 장비",
+            "grade": "normal",
+            "statBonus": {
+              "atk": 1,
+              "def": 1
+            },
+            "slot": "weapon"
+          }
+        ],
+        "settings": {
+          "autoEquipMinGrade": "magic"
+        },
+        "runState": {
+          "mode": "idle",
+          "stageIndex": 0,
+          "combatTimer": 0,
+          "distancePx": 968.139666666651
+        }
+      },
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "canvas": {
+        "x": 15,
+        "y": 0,
+        "width": 360,
+        "height": 640,
+        "top": 0,
+        "right": 375,
+        "bottom": 640,
+        "left": 15
+      },
+      "panel": {
+        "x": 15,
+        "y": 644,
+        "width": 360,
+        "height": 200,
+        "top": 644,
+        "right": 375,
+        "bottom": 844,
+        "left": 15
+      },
+      "documentHeight": 844
+    },
+    "equipmentAfter": {
+      "text": "장비\n스킬\n설정\n상점\nnormal 장비 (normal)\n\n스크랩북\n\nrare 장비 (rare) · 40G 복원",
+      "saved": {
+        "character": {
+          "level": 2,
+          "exp": 10,
+          "stats": {
+            "atk": 10,
+            "def": 5,
+            "crit": 0.05
+          },
+          "equippedItems": [
+            {
+              "id": "item_1791010551977_40779",
+              "name": "rare 장비",
+              "grade": "rare",
+              "statBonus": {
+                "atk": 3,
+                "def": 3
+              },
+              "slot": "weapon"
+            }
+          ],
+          "skillPoints": 0,
+          "skills": {
+            "power_strike": 1
+          }
+        },
+        "currency": {
+          "gold": 40
+        },
+        "inventory": [
+          {
+            "id": "item_1791010545359_90045",
+            "name": "normal 장비",
+            "grade": "normal",
+            "statBonus": {
+              "atk": 1,
+              "def": 1
+            },
+            "slot": "weapon"
+          },
+          {
+            "id": "item_1791010546309_7905",
+            "name": "normal 장비",
+            "grade": "normal",
+            "statBonus": {
+              "atk": 1,
+              "def": 1
+            },
+            "slot": "weapon"
+          },
+          {
+            "id": "item_1791010547259_13555",
+            "name": "normal 장비",
+            "grade": "normal",
+            "statBonus": {
+              "atk": 1,
+              "def": 1
+            },
+            "slot": "weapon"
+          },
+          {
+            "id": "item_1791010548192_79259",
+            "name": "normal 장비",
+            "grade": "normal",
+            "statBonus": {
+              "atk": 1,
+              "def": 1
+            },
+            "slot": "weapon"
+          },
+          {
+            "id": "item_1791010549142_29090",
+            "name": "normal 장비",
+            "grade": "normal",
+            "statBonus": {
+              "atk": 1,
+              "def": 1
+            },
+            "slot": "weapon"
+          },
+          {
+            "id": "item_1791010550092_63422",
+            "name": "normal 장비",
+            "grade": "normal",
+            "statBonus": {
+              "atk": 1,
+              "def": 1
+            },
+            "slot": "weapon"
+          },
+          {
+            "id": "item_1791010551041_62560",
+            "name": "normal 장비",
+            "grade": "normal",
+            "statBonus": {
+              "atk": 1,
+              "def": 1
+            },
+            "slot": "weapon"
+          },
+          {
+            "id": "item_1791010552913_5727",
+            "name": "normal 장비",
+            "grade": "normal",
+            "statBonus": {
+              "atk": 1,
+              "def": 1
+            },
+            "slot": "weapon"
+          },
+          {
+            "id": "item_1791010553858_67598",
+            "name": "normal 장비",
+            "grade": "normal",
+            "statBonus": {
+              "atk": 1,
+              "def": 1
+            },
+            "slot": "weapon"
+          },
+          {
+            "id": "item_1791010554792_7302",
+            "name": "normal 장비",
+            "grade": "normal",
+            "statBonus": {
+              "atk": 1,
+              "def": 1
+            },
+            "slot": "weapon"
+          },
+          {
+            "id": "item_1791010555725_85178",
+            "name": "normal 장비",
+            "grade": "normal",
+            "statBonus": {
+              "atk": 1,
+              "def": 1
+            },
+            "slot": "weapon"
+          },
+          {
+            "id": "item_1791010556659_45620",
+            "name": "magic 장비",
+            "grade": "magic",
+            "statBonus": {
+              "atk": 2,
+              "def": 2
+            },
+            "slot": "weapon"
+          },
+          {
+            "id": "item_1791010557592_54571",
+            "name": "normal 장비",
+            "grade": "normal",
+            "statBonus": {
+              "atk": 1,
+              "def": 1
+            },
+            "slot": "weapon"
+          },
+          {
+            "id": "item_1791010558525_96280",
+            "name": "normal 장비",
+            "grade": "normal",
+            "statBonus": {
+              "atk": 1,
+              "def": 1
+            },
+            "slot": "weapon"
+          },
+          {
+            "id": "item_1791010559459_73972",
+            "name": "normal 장비",
+            "grade": "normal",
+            "statBonus": {
+              "atk": 1,
+              "def": 1
+            },
+            "slot": "weapon"
+          },
+          {
+            "id": "item_1791010560393_31587",
+            "name": "magic 장비",
+            "grade": "magic",
+            "statBonus": {
+              "atk": 2,
+              "def": 2
+            },
+            "slot": "weapon"
+          },
+          {
+            "id": "item_1791010561325_42724",
+            "name": "normal 장비",
+            "grade": "normal",
+            "statBonus": {
+              "atk": 1,
+              "def": 1
+            },
+            "slot": "weapon"
+          },
+          {
+            "id": "item_1791010562258_43355",
+            "name": "normal 장비",
+            "grade": "normal",
+            "statBonus": {
+              "atk": 1,
+              "def": 1
+            },
+            "slot": "weapon"
+          }
+        ],
+        "scrapbook": [
+          {
+            "id": "item_1791010544426_73342",
+            "name": "normal 장비",
+            "grade": "normal",
+            "statBonus": {
+              "atk": 1,
+              "def": 1
+            },
+            "slot": "weapon"
+          }
+        ],
+        "settings": {
+          "autoEquipMinGrade": "magic"
+        },
+        "runState": {
+          "mode": "idle",
+          "stageIndex": 0,
+          "combatTimer": 0,
+          "distancePx": 968.139666666651
+        }
+      },
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "canvas": {
+        "x": 15,
+        "y": 0,
+        "width": 360,
+        "height": 640,
+        "top": 0,
+        "right": 375,
+        "bottom": 640,
+        "left": 15
+      },
+      "panel": {
+        "x": 15,
+        "y": 644,
+        "width": 360,
+        "height": 200,
+        "top": 644,
+        "right": 375,
+        "bottom": 844,
+        "left": 15
+      },
+      "documentHeight": 844
+    },
+    "panelDrag": {
+      "minimized": false
+    },
+    "combat": {
+      "text": "",
+      "saved": {
+        "character": {
+          "level": 2,
+          "exp": 10,
+          "stats": {
+            "atk": 10,
+            "def": 5,
+            "crit": 0.05
+          },
+          "equippedItems": [
+            {
+              "id": "item_1791010551977_40779",
+              "name": "rare 장비",
+              "grade": "rare",
+              "statBonus": {
+                "atk": 3,
+                "def": 3
+              },
+              "slot": "weapon"
+            }
+          ],
+          "skillPoints": 0,
+          "skills": {
+            "power_strike": 1
+          }
+        },
+        "currency": {
+          "gold": 40
+        },
+        "inventory": [
+          {
+            "id": "item_1791010545359_90045",
+            "name": "normal 장비",
+            "grade": "normal",
+            "statBonus": {
+              "atk": 1,
+              "def": 1
+            },
+            "slot": "weapon"
+          },
+          {
+            "id": "item_1791010546309_7905",
+            "name": "normal 장비",
+            "grade": "normal",
+            "statBonus": {
+              "atk": 1,
+              "def": 1
+            },
+            "slot": "weapon"
+          },
+          {
+            "id": "item_1791010547259_13555",
+            "name": "normal 장비",
+            "grade": "normal",
+            "statBonus": {
+              "atk": 1,
+              "def": 1
+            },
+            "slot": "weapon"
+          },
+          {
+            "id": "item_1791010548192_79259",
+            "name": "normal 장비",
+            "grade": "normal",
+            "statBonus": {
+              "atk": 1,
+              "def": 1
+            },
+            "slot": "weapon"
+          },
+          {
+            "id": "item_1791010549142_29090",
+            "name": "normal 장비",
+            "grade": "normal",
+            "statBonus": {
+              "atk": 1,
+              "def": 1
+            },
+            "slot": "weapon"
+          },
+          {
+            "id": "item_1791010550092_63422",
+            "name": "normal 장비",
+            "grade": "normal",
+            "statBonus": {
+              "atk": 1,
+              "def": 1
+            },
+            "slot": "weapon"
+          },
+          {
+            "id": "item_1791010551041_62560",
+            "name": "normal 장비",
+            "grade": "normal",
+            "statBonus": {
+              "atk": 1,
+              "def": 1
+            },
+            "slot": "weapon"
+          },
+          {
+            "id": "item_1791010552913_5727",
+            "name": "normal 장비",
+            "grade": "normal",
+            "statBonus": {
+              "atk": 1,
+              "def": 1
+            },
+            "slot": "weapon"
+          },
+          {
+            "id": "item_1791010553858_67598",
+            "name": "normal 장비",
+            "grade": "normal",
+            "statBonus": {
+              "atk": 1,
+              "def": 1
+            },
+            "slot": "weapon"
+          },
+          {
+            "id": "item_1791010554792_7302",
+            "name": "normal 장비",
+            "grade": "normal",
+            "statBonus": {
+              "atk": 1,
+              "def": 1
+            },
+            "slot": "weapon"
+          },
+          {
+            "id": "item_1791010555725_85178",
+            "name": "normal 장비",
+            "grade": "normal",
+            "statBonus": {
+              "atk": 1,
+              "def": 1
+            },
+            "slot": "weapon"
+          },
+          {
+            "id": "item_1791010556659_45620",
+            "name": "magic 장비",
+            "grade": "magic",
+            "statBonus": {
+              "atk": 2,
+              "def": 2
+            },
+            "slot": "weapon"
+          },
+          {
+            "id": "item_1791010557592_54571",
+            "name": "normal 장비",
+            "grade": "normal",
+            "statBonus": {
+              "atk": 1,
+              "def": 1
+            },
+            "slot": "weapon"
+          },
+          {
+            "id": "item_1791010558525_96280",
+            "name": "normal 장비",
+            "grade": "normal",
+            "statBonus": {
+              "atk": 1,
+              "def": 1
+            },
+            "slot": "weapon"
+          },
+          {
+            "id": "item_1791010559459_73972",
+            "name": "normal 장비",
+            "grade": "normal",
+            "statBonus": {
+              "atk": 1,
+              "def": 1
+            },
+            "slot": "weapon"
+          },
+          {
+            "id": "item_1791010560393_31587",
+            "name": "magic 장비",
+            "grade": "magic",
+            "statBonus": {
+              "atk": 2,
+              "def": 2
+            },
+            "slot": "weapon"
+          },
+          {
+            "id": "item_1791010561325_42724",
+            "name": "normal 장비",
+            "grade": "normal",
+            "statBonus": {
+              "atk": 1,
+              "def": 1
+            },
+            "slot": "weapon"
+          },
+          {
+            "id": "item_1791010562258_43355",
+            "name": "normal 장비",
+            "grade": "normal",
+            "statBonus": {
+              "atk": 1,
+              "def": 1
+            },
+            "slot": "weapon"
+          }
+        ],
+        "scrapbook": [
+          {
+            "id": "item_1791010544426_73342",
+            "name": "normal 장비",
+            "grade": "normal",
+            "statBonus": {
+              "atk": 1,
+              "def": 1
+            },
+            "slot": "weapon"
+          }
+        ],
+        "settings": {
+          "autoEquipMinGrade": "magic"
+        },
+        "runState": {
+          "mode": "idle",
+          "stageIndex": 0,
+          "combatTimer": 0,
+          "distancePx": 968.139666666651
+        }
+      },
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "canvas": {
+        "x": 15,
+        "y": 0,
+        "width": 360,
+        "height": 640,
+        "top": 0,
+        "right": 375,
+        "bottom": 640,
+        "left": 15
+      },
+      "panel": {
+        "x": 0,
+        "y": 0,
+        "width": 0,
+        "height": 0,
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0
+      },
+      "documentHeight": 844
+    },
+    "combatEnded": {
+      "text": "장비\n스킬\n설정\n상점\nnormal 장비 (normal)\n\n스크랩북\n\nrare 장비 (rare) · 40G 복원",
+      "saved": {
+        "character": {
+          "level": 2,
+          "exp": 13,
+          "stats": {
+            "atk": 10,
+            "def": 5,
+            "crit": 0.05
+          },
+          "equippedItems": [
+            {
+              "id": "item_1791010544426_73342",
+              "name": "normal 장비",
+              "grade": "normal",
+              "statBonus": {
+                "atk": 1,
+                "def": 1
+              },
+              "slot": "weapon"
+            }
+          ],
+          "skillPoints": 0,
+          "skills": {
+            "power_strike": 1
+          }
+        },
+        "currency": {
+          "gold": 17
+        },
+        "inventory": [
+          {
+            "id": "item_1791010545359_90045",
+            "name": "normal 장비",
+            "grade": "normal",
+            "statBonus": {
+              "atk": 1,
+              "def": 1
+            },
+            "slot": "weapon"
+          },
+          {
+            "id": "item_1791010546309_7905",
+            "name": "normal 장비",
+            "grade": "normal",
+            "statBonus": {
+              "atk": 1,
+              "def": 1
+            },
+            "slot": "weapon"
+          },
+          {
+            "id": "item_1791010547259_13555",
+            "name": "normal 장비",
+            "grade": "normal",
+            "statBonus": {
+              "atk": 1,
+              "def": 1
+            },
+            "slot": "weapon"
+          },
+          {
+            "id": "item_1791010548192_79259",
+            "name": "normal 장비",
+            "grade": "normal",
+            "statBonus": {
+              "atk": 1,
+              "def": 1
+            },
+            "slot": "weapon"
+          },
+          {
+            "id": "item_1791010549142_29090",
+            "name": "normal 장비",
+            "grade": "normal",
+            "statBonus": {
+              "atk": 1,
+              "def": 1
+            },
+            "slot": "weapon"
+          },
+          {
+            "id": "item_1791010550092_63422",
+            "name": "normal 장비",
+            "grade": "normal",
+            "statBonus": {
+              "atk": 1,
+              "def": 1
+            },
+            "slot": "weapon"
+          },
+          {
+            "id": "item_1791010551041_62560",
+            "name": "normal 장비",
+            "grade": "normal",
+            "statBonus": {
+              "atk": 1,
+              "def": 1
+            },
+            "slot": "weapon"
+          },
+          {
+            "id": "item_1791010552913_5727",
+            "name": "normal 장비",
+            "grade": "normal",
+            "statBonus": {
+              "atk": 1,
+              "def": 1
+            },
+            "slot": "weapon"
+          },
+          {
+            "id": "item_1791010553858_67598",
+            "name": "normal 장비",
+            "grade": "normal",
+            "statBonus": {
+              "atk": 1,
+              "def": 1
+            },
+            "slot": "weapon"
+          },
+          {
+            "id": "item_1791010554792_7302",
+            "name": "normal 장비",
+            "grade": "normal",
+            "statBonus": {
+              "atk": 1,
+              "def": 1
+            },
+            "slot": "weapon"
+          },
+          {
+            "id": "item_1791010555725_85178",
+            "name": "normal 장비",
+            "grade": "normal",
+            "statBonus": {
+              "atk": 1,
+              "def": 1
+            },
+            "slot": "weapon"
+          },
+          {
+            "id": "item_1791010556659_45620",
+            "name": "magic 장비",
+            "grade": "magic",
+            "statBonus": {
+              "atk": 2,
+              "def": 2
+            },
+            "slot": "weapon"
+          },
+          {
+            "id": "item_1791010557592_54571",
+            "name": "normal 장비",
+            "grade": "normal",
+            "statBonus": {
+              "atk": 1,
+              "def": 1
+            },
+            "slot": "weapon"
+          },
+          {
+            "id": "item_1791010558525_96280",
+            "name": "normal 장비",
+            "grade": "normal",
+            "statBonus": {
+              "atk": 1,
+              "def": 1
+            },
+            "slot": "weapon"
+          },
+          {
+            "id": "item_1791010559459_73972",
+            "name": "normal 장비",
+            "grade": "normal",
+            "statBonus": {
+              "atk": 1,
+              "def": 1
+            },
+            "slot": "weapon"
+          },
+          {
+            "id": "item_1791010560393_31587",
+            "name": "magic 장비",
+            "grade": "magic",
+            "statBonus": {
+              "atk": 2,
+              "def": 2
+            },
+            "slot": "weapon"
+          },
+          {
+            "id": "item_1791010561325_42724",
+            "name": "normal 장비",
+            "grade": "normal",
+            "statBonus": {
+              "atk": 1,
+              "def": 1
+            },
+            "slot": "weapon"
+          },
+          {
+            "id": "item_1791010562258_43355",
+            "name": "normal 장비",
+            "grade": "normal",
+            "statBonus": {
+              "atk": 1,
+              "def": 1
+            },
+            "slot": "weapon"
+          },
+          {
+            "id": "gacha_1791010563053_92041",
+            "name": "normal 장비",
+            "grade": "normal",
+            "statBonus": {
+              "atk": 1,
+              "def": 1
+            },
+            "slot": "weapon"
+          },
+          {
+            "id": "item_1791010563192_56902",
+            "name": "rare 장비",
+            "grade": "rare",
+            "statBonus": {
+              "atk": 3,
+              "def": 3
+            },
+            "slot": "weapon"
+          }
+        ],
+        "scrapbook": [
+          {
+            "id": "item_1791010551977_40779",
+            "name": "rare 장비",
+            "grade": "rare",
+            "statBonus": {
+              "atk": 3,
+              "def": 3
+            },
+            "slot": "weapon"
+          }
+        ],
+        "settings": {
+          "autoEquipMinGrade": "magic"
+        },
+        "runState": {
+          "mode": "idle",
+          "stageIndex": 0,
+          "combatTimer": 0,
+          "distancePx": 1031.4716666666488
+        }
+      },
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "canvas": {
+        "x": 15,
+        "y": 0,
+        "width": 360,
+        "height": 640,
+        "top": 0,
+        "right": 375,
+        "bottom": 640,
+        "left": 15
+      },
+      "panel": {
+        "x": 15,
+        "y": 644,
+        "width": 360,
+        "height": 200,
+        "top": 644,
+        "right": 375,
+        "bottom": 844,
+        "left": 15
+      },
+      "documentHeight": 844
+    },
+    "reload": {
+      "text": "장비\n스킬\n설정\n상점\n\n레벨 2 · 스킬 포인트 0\n\n강타 Lv.1/5 투자\n\n철갑 Lv.0/5 투자",
+      "saved": {
+        "character": {
+          "level": 2,
+          "exp": 13,
+          "stats": {
+            "atk": 10,
+            "def": 5,
+            "crit": 0.05
+          },
+          "equippedItems": [
+            {
+              "id": "item_1791010544426_73342",
+              "name": "normal 장비",
+              "grade": "normal",
+              "statBonus": {
+                "atk": 1,
+                "def": 1
+              },
+              "slot": "weapon"
+            }
+          ],
+          "skillPoints": 0,
+          "skills": {
+            "power_strike": 1
+          }
+        },
+        "currency": {
+          "gold": 17
+        },
+        "inventory": [
+          {
+            "id": "item_1791010545359_90045",
+            "name": "normal 장비",
+            "grade": "normal",
+            "statBonus": {
+              "atk": 1,
+              "def": 1
+            },
+            "slot": "weapon"
+          },
+          {
+            "id": "item_1791010546309_7905",
+            "name": "normal 장비",
+            "grade": "normal",
+            "statBonus": {
+              "atk": 1,
+              "def": 1
+            },
+            "slot": "weapon"
+          },
+          {
+            "id": "item_1791010547259_13555",
+            "name": "normal 장비",
+            "grade": "normal",
+            "statBonus": {
+              "atk": 1,
+              "def": 1
+            },
+            "slot": "weapon"
+          },
+          {
+            "id": "item_1791010548192_79259",
+            "name": "normal 장비",
+            "grade": "normal",
+            "statBonus": {
+              "atk": 1,
+              "def": 1
+            },
+            "slot": "weapon"
+          },
+          {
+            "id": "item_1791010549142_29090",
+            "name": "normal 장비",
+            "grade": "normal",
+            "statBonus": {
+              "atk": 1,
+              "def": 1
+            },
+            "slot": "weapon"
+          },
+          {
+            "id": "item_1791010550092_63422",
+            "name": "normal 장비",
+            "grade": "normal",
+            "statBonus": {
+              "atk": 1,
+              "def": 1
+            },
+            "slot": "weapon"
+          },
+          {
+            "id": "item_1791010551041_62560",
+            "name": "normal 장비",
+            "grade": "normal",
+            "statBonus": {
+              "atk": 1,
+              "def": 1
+            },
+            "slot": "weapon"
+          },
+          {
+            "id": "item_1791010552913_5727",
+            "name": "normal 장비",
+            "grade": "normal",
+            "statBonus": {
+              "atk": 1,
+              "def": 1
+            },
+            "slot": "weapon"
+          },
+          {
+            "id": "item_1791010553858_67598",
+            "name": "normal 장비",
+            "grade": "normal",
+            "statBonus": {
+              "atk": 1,
+              "def": 1
+            },
+            "slot": "weapon"
+          },
+          {
+            "id": "item_1791010554792_7302",
+            "name": "normal 장비",
+            "grade": "normal",
+            "statBonus": {
+              "atk": 1,
+              "def": 1
+            },
+            "slot": "weapon"
+          },
+          {
+            "id": "item_1791010555725_85178",
+            "name": "normal 장비",
+            "grade": "normal",
+            "statBonus": {
+              "atk": 1,
+              "def": 1
+            },
+            "slot": "weapon"
+          },
+          {
+            "id": "item_1791010556659_45620",
+            "name": "magic 장비",
+            "grade": "magic",
+            "statBonus": {
+              "atk": 2,
+              "def": 2
+            },
+            "slot": "weapon"
+          },
+          {
+            "id": "item_1791010557592_54571",
+            "name": "normal 장비",
+            "grade": "normal",
+            "statBonus": {
+              "atk": 1,
+              "def": 1
+            },
+            "slot": "weapon"
+          },
+          {
+            "id": "item_1791010558525_96280",
+            "name": "normal 장비",
+            "grade": "normal",
+            "statBonus": {
+              "atk": 1,
+              "def": 1
+            },
+            "slot": "weapon"
+          },
+          {
+            "id": "item_1791010559459_73972",
+            "name": "normal 장비",
+            "grade": "normal",
+            "statBonus": {
+              "atk": 1,
+              "def": 1
+            },
+            "slot": "weapon"
+          },
+          {
+            "id": "item_1791010560393_31587",
+            "name": "magic 장비",
+            "grade": "magic",
+            "statBonus": {
+              "atk": 2,
+              "def": 2
+            },
+            "slot": "weapon"
+          },
+          {
+            "id": "item_1791010561325_42724",
+            "name": "normal 장비",
+            "grade": "normal",
+            "statBonus": {
+              "atk": 1,
+              "def": 1
+            },
+            "slot": "weapon"
+          },
+          {
+            "id": "item_1791010562258_43355",
+            "name": "normal 장비",
+            "grade": "normal",
+            "statBonus": {
+              "atk": 1,
+              "def": 1
+            },
+            "slot": "weapon"
+          },
+          {
+            "id": "gacha_1791010563053_92041",
+            "name": "normal 장비",
+            "grade": "normal",
+            "statBonus": {
+              "atk": 1,
+              "def": 1
+            },
+            "slot": "weapon"
+          },
+          {
+            "id": "item_1791010563192_56902",
+            "name": "rare 장비",
+            "grade": "rare",
+            "statBonus": {
+              "atk": 3,
+              "def": 3
+            },
+            "slot": "weapon"
+          }
+        ],
+        "scrapbook": [
+          {
+            "id": "item_1791010551977_40779",
+            "name": "rare 장비",
+            "grade": "rare",
+            "statBonus": {
+              "atk": 3,
+              "def": 3
+            },
+            "slot": "weapon"
+          }
+        ],
+        "settings": {
+          "autoEquipMinGrade": "magic"
+        },
+        "runState": {
+          "mode": "idle",
+          "stageIndex": 0,
+          "combatTimer": 0,
+          "distancePx": 1037.8041666666488
+        }
+      },
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "canvas": {
+        "x": 15,
+        "y": 0,
+        "width": 360,
+        "height": 640,
+        "top": 0,
+        "right": 375,
+        "bottom": 640,
+        "left": 15
+      },
+      "panel": {
+        "x": 15,
+        "y": 644,
+        "width": 360,
+        "height": 200,
+        "top": 644,
+        "right": 375,
+        "bottom": 844,
+        "left": 15
+      },
+      "documentHeight": 844
+    },
+    "smallMobile": {
+      "text": "장비\n스킬\n설정\n상점\n\n레벨 2 · 스킬 포인트 0\n\n강타 Lv.1/5 투자\n\n철갑 Lv.0/5 투자",
+      "saved": {
+        "character": {
+          "level": 2,
+          "exp": 13,
+          "stats": {
+            "atk": 10,
+            "def": 5,
+            "crit": 0.05
+          },
+          "equippedItems": [
+            {
+              "id": "item_1791010544426_73342",
+              "name": "normal 장비",
+              "grade": "normal",
+              "statBonus": {
+                "atk": 1,
+                "def": 1
+              },
+              "slot": "weapon"
+            }
+          ],
+          "skillPoints": 0,
+          "skills": {
+            "power_strike": 1
+          }
+        },
+        "currency": {
+          "gold": 17
+        },
+        "inventory": [
+          {
+            "id": "item_1791010545359_90045",
+            "name": "normal 장비",
+            "grade": "normal",
+            "statBonus": {
+              "atk": 1,
+              "def": 1
+            },
+            "slot": "weapon"
+          },
+          {
+            "id": "item_1791010546309_7905",
+            "name": "normal 장비",
+            "grade": "normal",
+            "statBonus": {
+              "atk": 1,
+              "def": 1
+            },
+            "slot": "weapon"
+          },
+          {
+            "id": "item_1791010547259_13555",
+            "name": "normal 장비",
+            "grade": "normal",
+            "statBonus": {
+              "atk": 1,
+              "def": 1
+            },
+            "slot": "weapon"
+          },
+          {
+            "id": "item_1791010548192_79259",
+            "name": "normal 장비",
+            "grade": "normal",
+            "statBonus": {
+              "atk": 1,
+              "def": 1
+            },
+            "slot": "weapon"
+          },
+          {
+            "id": "item_1791010549142_29090",
+            "name": "normal 장비",
+            "grade": "normal",
+            "statBonus": {
+              "atk": 1,
+              "def": 1
+            },
+            "slot": "weapon"
+          },
+          {
+            "id": "item_1791010550092_63422",
+            "name": "normal 장비",
+            "grade": "normal",
+            "statBonus": {
+              "atk": 1,
+              "def": 1
+            },
+            "slot": "weapon"
+          },
+          {
+            "id": "item_1791010551041_62560",
+            "name": "normal 장비",
+            "grade": "normal",
+            "statBonus": {
+              "atk": 1,
+              "def": 1
+            },
+            "slot": "weapon"
+          },
+          {
+            "id": "item_1791010552913_5727",
+            "name": "normal 장비",
+            "grade": "normal",
+            "statBonus": {
+              "atk": 1,
+              "def": 1
+            },
+            "slot": "weapon"
+          },
+          {
+            "id": "item_1791010553858_67598",
+            "name": "normal 장비",
+            "grade": "normal",
+            "statBonus": {
+              "atk": 1,
+              "def": 1
+            },
+            "slot": "weapon"
+          },
+          {
+            "id": "item_1791010554792_7302",
+            "name": "normal 장비",
+            "grade": "normal",
+            "statBonus": {
+              "atk": 1,
+              "def": 1
+            },
+            "slot": "weapon"
+          },
+          {
+            "id": "item_1791010555725_85178",
+            "name": "normal 장비",
+            "grade": "normal",
+            "statBonus": {
+              "atk": 1,
+              "def": 1
+            },
+            "slot": "weapon"
+          },
+          {
+            "id": "item_1791010556659_45620",
+            "name": "magic 장비",
+            "grade": "magic",
+            "statBonus": {
+              "atk": 2,
+              "def": 2
+            },
+            "slot": "weapon"
+          },
+          {
+            "id": "item_1791010557592_54571",
+            "name": "normal 장비",
+            "grade": "normal",
+            "statBonus": {
+              "atk": 1,
+              "def": 1
+            },
+            "slot": "weapon"
+          },
+          {
+            "id": "item_1791010558525_96280",
+            "name": "normal 장비",
+            "grade": "normal",
+            "statBonus": {
+              "atk": 1,
+              "def": 1
+            },
+            "slot": "weapon"
+          },
+          {
+            "id": "item_1791010559459_73972",
+            "name": "normal 장비",
+            "grade": "normal",
+            "statBonus": {
+              "atk": 1,
+              "def": 1
+            },
+            "slot": "weapon"
+          },
+          {
+            "id": "item_1791010560393_31587",
+            "name": "magic 장비",
+            "grade": "magic",
+            "statBonus": {
+              "atk": 2,
+              "def": 2
+            },
+            "slot": "weapon"
+          },
+          {
+            "id": "item_1791010561325_42724",
+            "name": "normal 장비",
+            "grade": "normal",
+            "statBonus": {
+              "atk": 1,
+              "def": 1
+            },
+            "slot": "weapon"
+          },
+          {
+            "id": "item_1791010562258_43355",
+            "name": "normal 장비",
+            "grade": "normal",
+            "statBonus": {
+              "atk": 1,
+              "def": 1
+            },
+            "slot": "weapon"
+          },
+          {
+            "id": "gacha_1791010563053_92041",
+            "name": "normal 장비",
+            "grade": "normal",
+            "statBonus": {
+              "atk": 1,
+              "def": 1
+            },
+            "slot": "weapon"
+          },
+          {
+            "id": "item_1791010563192_56902",
+            "name": "rare 장비",
+            "grade": "rare",
+            "statBonus": {
+              "atk": 3,
+              "def": 3
+            },
+            "slot": "weapon"
+          }
+        ],
+        "scrapbook": [
+          {
+            "id": "item_1791010551977_40779",
+            "name": "rare 장비",
+            "grade": "rare",
+            "statBonus": {
+              "atk": 3,
+              "def": 3
+            },
+            "slot": "weapon"
+          }
+        ],
+        "settings": {
+          "autoEquipMinGrade": "magic"
+        },
+        "runState": {
+          "mode": "idle",
+          "stageIndex": 0,
+          "combatTimer": 0,
+          "distancePx": 1037.8041666666488
+        }
+      },
+      "viewport": {
+        "width": 360,
+        "height": 640
+      },
+      "canvas": {
+        "x": 0,
+        "y": 0,
+        "width": 360,
+        "height": 640,
+        "top": 0,
+        "right": 360,
+        "bottom": 640,
+        "left": 0
+      },
+      "panel": {
+        "x": 0,
+        "y": 644,
+        "width": 360,
+        "height": 0,
+        "top": 644,
+        "right": 360,
+        "bottom": 644,
+        "left": 0
+      },
+      "documentHeight": 644
+    },
+    "desktop": {
+      "text": "장비\n스킬\n설정\n상점\n\n레벨 2 · 스킬 포인트 0\n\n강타 Lv.1/5 투자\n\n철갑 Lv.0/5 투자",
+      "saved": {
+        "character": {
+          "level": 2,
+          "exp": 13,
+          "stats": {
+            "atk": 10,
+            "def": 5,
+            "crit": 0.05
+          },
+          "equippedItems": [
+            {
+              "id": "item_1791010544426_73342",
+              "name": "normal 장비",
+              "grade": "normal",
+              "statBonus": {
+                "atk": 1,
+                "def": 1
+              },
+              "slot": "weapon"
+            }
+          ],
+          "skillPoints": 0,
+          "skills": {
+            "power_strike": 1
+          }
+        },
+        "currency": {
+          "gold": 17
+        },
+        "inventory": [
+          {
+            "id": "item_1791010545359_90045",
+            "name": "normal 장비",
+            "grade": "normal",
+            "statBonus": {
+              "atk": 1,
+              "def": 1
+            },
+            "slot": "weapon"
+          },
+          {
+            "id": "item_1791010546309_7905",
+            "name": "normal 장비",
+            "grade": "normal",
+            "statBonus": {
+              "atk": 1,
+              "def": 1
+            },
+            "slot": "weapon"
+          },
+          {
+            "id": "item_1791010547259_13555",
+            "name": "normal 장비",
+            "grade": "normal",
+            "statBonus": {
+              "atk": 1,
+              "def": 1
+            },
+            "slot": "weapon"
+          },
+          {
+            "id": "item_1791010548192_79259",
+            "name": "normal 장비",
+            "grade": "normal",
+            "statBonus": {
+              "atk": 1,
+              "def": 1
+            },
+            "slot": "weapon"
+          },
+          {
+            "id": "item_1791010549142_29090",
+            "name": "normal 장비",
+            "grade": "normal",
+            "statBonus": {
+              "atk": 1,
+              "def": 1
+            },
+            "slot": "weapon"
+          },
+          {
+            "id": "item_1791010550092_63422",
+            "name": "normal 장비",
+            "grade": "normal",
+            "statBonus": {
+              "atk": 1,
+              "def": 1
+            },
+            "slot": "weapon"
+          },
+          {
+            "id": "item_1791010551041_62560",
+            "name": "normal 장비",
+            "grade": "normal",
+            "statBonus": {
+              "atk": 1,
+              "def": 1
+            },
+            "slot": "weapon"
+          },
+          {
+            "id": "item_1791010552913_5727",
+            "name": "normal 장비",
+            "grade": "normal",
+            "statBonus": {
+              "atk": 1,
+              "def": 1
+            },
+            "slot": "weapon"
+          },
+          {
+            "id": "item_1791010553858_67598",
+            "name": "normal 장비",
+            "grade": "normal",
+            "statBonus": {
+              "atk": 1,
+              "def": 1
+            },
+            "slot": "weapon"
+          },
+          {
+            "id": "item_1791010554792_7302",
+            "name": "normal 장비",
+            "grade": "normal",
+            "statBonus": {
+              "atk": 1,
+              "def": 1
+            },
+            "slot": "weapon"
+          },
+          {
+            "id": "item_1791010555725_85178",
+            "name": "normal 장비",
+            "grade": "normal",
+            "statBonus": {
+              "atk": 1,
+              "def": 1
+            },
+            "slot": "weapon"
+          },
+          {
+            "id": "item_1791010556659_45620",
+            "name": "magic 장비",
+            "grade": "magic",
+            "statBonus": {
+              "atk": 2,
+              "def": 2
+            },
+            "slot": "weapon"
+          },
+          {
+            "id": "item_1791010557592_54571",
+            "name": "normal 장비",
+            "grade": "normal",
+            "statBonus": {
+              "atk": 1,
+              "def": 1
+            },
+            "slot": "weapon"
+          },
+          {
+            "id": "item_1791010558525_96280",
+            "name": "normal 장비",
+            "grade": "normal",
+            "statBonus": {
+              "atk": 1,
+              "def": 1
+            },
+            "slot": "weapon"
+          },
+          {
+            "id": "item_1791010559459_73972",
+            "name": "normal 장비",
+            "grade": "normal",
+            "statBonus": {
+              "atk": 1,
+              "def": 1
+            },
+            "slot": "weapon"
+          },
+          {
+            "id": "item_1791010560393_31587",
+            "name": "magic 장비",
+            "grade": "magic",
+            "statBonus": {
+              "atk": 2,
+              "def": 2
+            },
+            "slot": "weapon"
+          },
+          {
+            "id": "item_1791010561325_42724",
+            "name": "normal 장비",
+            "grade": "normal",
+            "statBonus": {
+              "atk": 1,
+              "def": 1
+            },
+            "slot": "weapon"
+          },
+          {
+            "id": "item_1791010562258_43355",
+            "name": "normal 장비",
+            "grade": "normal",
+            "statBonus": {
+              "atk": 1,
+              "def": 1
+            },
+            "slot": "weapon"
+          },
+          {
+            "id": "gacha_1791010563053_92041",
+            "name": "normal 장비",
+            "grade": "normal",
+            "statBonus": {
+              "atk": 1,
+              "def": 1
+            },
+            "slot": "weapon"
+          },
+          {
+            "id": "item_1791010563192_56902",
+            "name": "rare 장비",
+            "grade": "rare",
+            "statBonus": {
+              "atk": 3,
+              "def": 3
+            },
+            "slot": "weapon"
+          }
+        ],
+        "scrapbook": [
+          {
+            "id": "item_1791010551977_40779",
+            "name": "rare 장비",
+            "grade": "rare",
+            "statBonus": {
+              "atk": 3,
+              "def": 3
+            },
+            "slot": "weapon"
+          }
+        ],
+        "settings": {
+          "autoEquipMinGrade": "magic"
+        },
+        "runState": {
+          "mode": "idle",
+          "stageIndex": 0,
+          "combatTimer": 0,
+          "distancePx": 1037.8041666666488
+        }
+      },
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "canvas": {
+        "x": 540,
+        "y": 0,
+        "width": 360,
+        "height": 640,
+        "top": 0,
+        "right": 900,
+        "bottom": 640,
+        "left": 540
+      },
+      "panel": {
+        "x": 540,
+        "y": 644,
+        "width": 360,
+        "height": 256,
+        "top": 644,
+        "right": 900,
+        "bottom": 900,
+        "left": 540
+      },
+      "documentHeight": 900
+    },
+    "portal": {
+      "url": "https://www.fungood.co.kr/game_portal/#/play/claude-game",
+      "iframe": "https://www.fungood.co.kr/claude_game/"
+    }
+  }
+}

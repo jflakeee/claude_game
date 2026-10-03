@@ -23,7 +23,9 @@ export function addReward(session, reward) {
 }
 
 export function settleCombat(session, currency, character) {
+  if (session.settled) return { outcome: session.outcome, rewards: session.rewards };
   currency.gold += session.rewards.gold;
   character.exp += session.rewards.exp;
+  session.settled = true;
   return { outcome: session.outcome, rewards: session.rewards };
 }

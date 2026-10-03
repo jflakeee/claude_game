@@ -1,4 +1,4 @@
-import { createCharacter, createCurrency, createRunState } from './models.js';
+import { createCharacter, createCurrency, createRunState } from "./models.js";
 
 export function createStore() {
   const state = {
@@ -6,8 +6,15 @@ export function createStore() {
     currency: createCurrency(),
     inventory: [],
     scrapbook: [],
-    settings: { autoEquipMinGrade: 'normal' },
+    settings: {
+      autoEquipMinGrade: "normal",
+      sound: true,
+      notifications: true,
+      autoProgress: true,
+    },
     runState: createRunState(),
+    combatSession: null,
+    lastResult: null,
   };
   const listeners = new Set();
 
