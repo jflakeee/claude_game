@@ -60,8 +60,17 @@ export function mountBottomPanel(container) {
   const content = container.querySelector('.tab-content');
   let activeTab = 'equipment';
 
+  let lastHtml = null;
+  let renderTimer = null;
+
   function render() {
-    content.innerHTML = renderTab(activeTab, store.getState());
+    if (renderTimer) clearTimeout(renderTimer);
+    renderTimer = setTimeout(() => {
+      const html = renderTab(activeTab, store.getState());
+      if (html === lastHtml) return;
+      lastHtml = html;
+      content.innerHTML = html;
+    }, 50);
   }
 
   container.querySelectorAll('.tab-button').forEach((btn) => {
