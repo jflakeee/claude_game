@@ -1,4 +1,4 @@
-import { rollGrade } from '../data/dropTable.js';
+import { rollGrade, gradeRank } from '../data/dropTable.js';
 import { autoEquip } from './autoEquip.js';
 import { addItemToInventory } from './inventory.js';
 
@@ -31,7 +31,7 @@ export function resolveIdleKill({ character, currency, inventory, scrapbook, aut
     id: `item_${Date.now()}_${Math.floor(randomFn() * 100000)}`,
     name: `${grade} 장비`,
     grade,
-    statBonus: { atk: 1 },
+    statBonus: { atk: gradeRank(grade) + 1 },
     slot: 'weapon',
   };
 

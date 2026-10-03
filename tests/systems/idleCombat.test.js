@@ -90,4 +90,32 @@ describe('resolveIdleKill', () => {
     expect(scrapbook).toContainEqual(existing);
     expect(inventory).toHaveLength(0);
   });
+
+  it('드롭 아이템의 atk는 등급이 높을수록 커진다', () => {
+    const character = { equippedItems: [], exp: 0 };
+    const currency = { gold: 0 };
+    const inventory = [];
+    const scrapbook = [];
+
+    const normalResult = resolveIdleKill({
+      character,
+      currency,
+      inventory,
+      scrapbook,
+      autoEquipMinGrade: 'epic',
+      randomFn: () => 0,
+    });
+    const epicResult = resolveIdleKill({
+      character,
+      currency,
+      inventory,
+      scrapbook,
+      autoEquipMinGrade: 'epic',
+      randomFn: () => 0.99,
+    });
+
+    expect(normalResult.item.grade).toBe('normal');
+    expect(epicResult.item.grade).toBe('epic');
+    expect(epicResult.item.statBonus.atk).toBeGreaterThan(normalResult.item.statBonus.atk);
+  });
 });
