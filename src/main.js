@@ -9,7 +9,10 @@ const AUTOSAVE_INTERVAL_MS = 10000;
 
 const saved = loadState();
 if (saved) {
-  store.setState(saved);
+  const mergedRunState = saved.runState
+    ? { ...store.getState().runState, ...saved.runState }
+    : store.getState().runState;
+  store.setState({ ...saved, runState: mergedRunState });
 }
 
 mountBottomPanel(document.getElementById('bottom-panel'));
