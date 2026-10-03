@@ -41,8 +41,10 @@ describe('renderTab', () => {
     expect(html).toContain('data-action="cycle-auto-equip-grade"');
   });
 
-  it('shop 탭: 보유 골드를 보여준다', () => {
-    expect(renderTab('shop', baseState())).toContain('120');
+  it('shop 탭: 보유 골드와 뽑기 버튼을 보여준다', () => {
+    const html = renderTab('shop', baseState());
+    expect(html).toContain('120');
+    expect(html).toContain('data-action="pull-gacha"');
   });
 
   it('알 수 없는 탭은 빈 문자열을 반환한다', () => {

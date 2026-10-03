@@ -2,6 +2,7 @@ import { store } from '../state/globalStore.js';
 import { GRADE_ORDER } from '../data/dropTable.js';
 import { itemGoldValue } from '../systems/inventory.js';
 import { restoreFromScrapbook } from '../systems/scrapbook.js';
+import { GACHA_COST, pullGacha } from '../systems/shop.js';
 
 const TABS = ['equipment', 'skills', 'settings', 'shop'];
 const TAB_LABELS = { equipment: '장비', skills: '스킬', settings: '설정', shop: '상점' };
@@ -32,7 +33,10 @@ export function renderTab(tab, state) {
     `;
   }
   if (tab === 'shop') {
-    return `<p>골드: ${state.currency.gold}</p>`;
+    return `
+      <p>골드: ${state.currency.gold}</p>
+      <button data-action="pull-gacha" class="mock-button">뽑기 (${GACHA_COST}골드)</button>
+    `;
   }
   return '';
 }
@@ -74,6 +78,20 @@ export function mountBottomPanel(container) {
     if (restoreBtn) {
       const state = store.getState();
       restoreFromScrapbook(state.scrapbook, state.character, state.currency, restoreBtn.dataset.itemId);
+      store.notify();
+      return;
+    }
+
+    const gachaBtn = event.target.closest('[data-action="pull-gacha"]');
+    if (gachaBtn) {
+      const state = store.getState();
+      pullGacha({
+        character: state.character,
+        currency: state.currency,
+        inventory: state.inventory,
+        scrapbook: state.scrapbook,
+        autoEquipMinGrade: state.settings.autoEquipMinGrade,
+      });
       store.notify();
       return;
     }
