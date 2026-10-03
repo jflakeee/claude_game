@@ -1295,6 +1295,217 @@ git commit -m "fix: scale dropped item stats with grade so auto-equip upgrades a
 
 ---
 
+---
+
+### Task 26: 드롭 아이템에 def 스탯도 함께 부여
+
+**배경:** 최종 종합 리뷰에서 발견 — 모든 드롭/가챠 아이템이 `atk`만 가지고 있어서, `CombatScene`의 피해 경감 공식(`def` 기반)이 항상 고정값으로만 동작한다(아무리 장비를 올려도 전투 중 받는 피해가 줄지 않음). 아이템에 `def`도 함께 부여해서 실제로 변화가 생기게 한다. (슬롯을 분리하는 대신, 하나의 장비에 두 스탯을 모두 부여하는 가장 단순한 방식을 택해 RNG 호출 순서/기존 테스트에 영향을 주지 않는다.)
+
+**Files:**
+- Modify: `src/systems/idleCombat.js`
+- Modify: `src/systems/shop.js`
+
+- [ ] **Step 1:** `src/systems/idleCombat.js`의 아이템 생성부:
+```js
+    statBonus: { atk: gradeRank(grade) + 1 },
+```
+를 다음으로 교체:
+```js
+    statBonus: { atk: gradeRank(grade) + 1, def: gradeRank(grade) + 1 },
+```
+
+- [ ] **Step 2:** `src/systems/shop.js`의 아이템 생성부도 동일하게 교체:
+```js
+    statBonus: { atk: gradeRank(grade) + 1 },
+```
+→
+```js
+    statBonus: { atk: gradeRank(grade) + 1, def: gradeRank(grade) + 1 },
+```
+
+- [ ] **Step 3: 검증**
+
+기존 테스트는 `statBonus.atk` 값만 비교하므로(`toEqual`로 전체 객체를 비교하는 테스트는 없음 — 있다면 확인 후 `def` 필드를 추가해 맞춰준다) 수정 없이 통과해야 한다.
+
+Run: `npm test` → 전체 PASS (72개 그대로, 신규 테스트 없음)
+Run: `npm run build` → 성공해야 함
+
+- [ ] **Step 4: 커밋**
+
+```bash
+git add src/systems/idleCombat.js src/systems/shop.js
+git commit -m "fix: grant def stat on dropped items so combat damage mitigation actually varies"
+```
+
+---
+
+### Task 27: 스킬 탭에 투자 버튼 추가
+
+**배경:** 최종 종합 리뷰에서 발견 — `learnOrLevelSkill`이 테스트 파일 밖에서는 전혀 호출되지 않는다. 레벨업으로 스킬 포인트는 쌓이지만 쓸 방법이 없다.
+
+**Files:**
+- Modify: `src/ui/BottomPanel.js`
+- Modify: `tests/ui/BottomPanel.test.js`
+
+- [ ] **Step 1: 실패하는 테스트 작성**
+
+`tests/ui/BottomPanel.test.js`의 skills 탭 테스트를 다음으로 교체(또는 추가):
+```js
+  it('skills 탭: 스킬 목록과 투자 버튼을 보여준다', () => {
+    const html = renderTab('skills', baseState());
+    expect(html).toContain('강타');
+    expect(html).toContain('철갑');
+    expect(html).toContain('data-action="learn-skill"');
+    expect(html).toContain('data-skill-id="power_strike"');
+  });
+```
+
+- [ ] **Step 2: 테스트 실패 확인**
+
+Run: `npx vitest run tests/ui/BottomPanel.test.js` → FAIL
+
+- [ ] **Step 3: 구현 수정**
+
+`src/ui/BottomPanel.js` import에 추가:
+```js
+import { SKILL_DEFS, learnOrLevelSkill } from '../data/skills.js';
+```
+
+`renderTab`의 `skills` 분기를 다음으로 교체:
+```js
+  if (tab === 'skills') {
+    const skillsHtml = Object.values(SKILL_DEFS)
+      .map((def) => {
+        const level = state.character.skills[def.id] || 0;
+        return `<p>${def.name} Lv.${level}/${def.maxLevel} <button data-action="learn-skill" data-skill-id="${def.id}" class="mock-button">투자</button></p>`;
+      })
+      .join('');
+    return `<p>레벨 ${state.character.level} · 스킬 포인트 ${state.character.skillPoints}</p>${skillsHtml}`;
+  }
+```
+
+기존 클릭 위임 리스너(`cycle-auto-equip-grade`/`restore-scrapbook-item`/`pull-gacha` 분기가 있는 `content.addEventListener('click', ...)`)에 새 분기 추가:
+```js
+    const learnBtn = event.target.closest('[data-action="learn-skill"]');
+    if (learnBtn) {
+      const state = store.getState();
+      learnOrLevelSkill(state.character, learnBtn.dataset.skillId);
+      store.notify();
+      return;
+    }
+```
+
+- [ ] **Step 4: 테스트 통과 확인**
+
+Run: `npx vitest run tests/ui/BottomPanel.test.js` → PASS
+
+- [ ] **Step 5: 빌드/전체 테스트 검증**
+
+Run: `npm run build` → 성공
+Run: `npm test` → 전체 PASS
+
+- [ ] **Step 6: 커밋**
+
+```bash
+git add src/ui/BottomPanel.js tests/ui/BottomPanel.test.js
+git commit -m "feat: add skill investment buttons to skills tab"
+```
+
+---
+
+### Task 28: 세이브 로드시 runState 얕은 병합
+
+**배경:** 최종 종합 리뷰에서 발견 — Task 19가 `runState`에 `distancePx`를 추가했는데, `main.js`는 저장된 상태를 `store.setState(saved)`로 통째로 덮어쓴다. 이 브랜치 작업 도중(Task 15~18 시점)에 저장된 구버전 세이브를 나중에 불러오면 `runState.distancePx`가 `undefined`가 되어 방치 진행도 계산이 `NaN`으로 깨질 수 있다.
+
+**Files:**
+- Modify: `src/main.js`
+
+- [ ] **Step 1:** `src/main.js`에서 다음 부분:
+```js
+const saved = loadState();
+if (saved) {
+  store.setState(saved);
+}
+```
+를 다음으로 교체:
+```js
+const saved = loadState();
+if (saved) {
+  const mergedRunState = saved.runState
+    ? { ...store.getState().runState, ...saved.runState }
+    : store.getState().runState;
+  store.setState({ ...saved, runState: mergedRunState });
+}
+```
+
+- [ ] **Step 2: 검증**
+
+`main.js`는 직접 유닛 테스트 대상이 아니다(Task 14 정책과 동일). 다음으로 대체 검증한다:
+Run: `npm run build` → 성공해야 함
+Run: `npm test` → 전체 PASS (변경 없음)
+Dev 서버 스모크 체크: 백그라운드로 `npm run dev` 기동 → curl로 200 확인 → 콘솔 에러 없는지 확인 → 종료
+
+- [ ] **Step 3: 커밋**
+
+```bash
+git add src/main.js
+git commit -m "fix: shallow-merge runState on load to survive schema changes in old saves"
+```
+
+---
+
+### Task 29: 하단 패널 재렌더 안정화
+
+**배경:** 최종 종합 리뷰에서 발견 — `BottomPanel`의 `render()`가 `store.notify()`가 호출될 때마다(방치 틱마다 약 1초에 한 번꼴) `content.innerHTML`을 통째로 교체한다. 사용자가 버튼을 탭하는 타이밍과 재렌더가 겹치면, 누르고 있던 버튼 DOM 노드가 사라져 클릭 이벤트가 씹힐 수 있다.
+
+**Files:**
+- Modify: `src/ui/BottomPanel.js`
+
+- [ ] **Step 1:** `mountBottomPanel` 내부의 `render` 함수:
+```js
+  function render() {
+    content.innerHTML = renderTab(activeTab, store.getState());
+  }
+```
+를 다음으로 교체:
+```js
+  let lastHtml = null;
+  let renderTimer = null;
+
+  function render() {
+    if (renderTimer) clearTimeout(renderTimer);
+    renderTimer = setTimeout(() => {
+      const html = renderTab(activeTab, store.getState());
+      if (html === lastHtml) return;
+      lastHtml = html;
+      content.innerHTML = html;
+    }, 50);
+  }
+```
+
+탭 버튼 클릭 핸들러(`activeTab = btn.dataset.tab; render();`)는 그대로 둔다 — 탭 전환 시에도 50ms 디바운스를 거치지만 체감상 차이는 없다.
+
+- [ ] **Step 2: 검증**
+
+Run: `npm run build` → 성공해야 함
+Run: `npm test` → 전체 PASS (DOM 디바운싱은 유닛 테스트 대상 아님 — 기존 정책과 동일)
+
+- [ ] **Step 3: 커밋**
+
+```bash
+git add src/ui/BottomPanel.js
+git commit -m "fix: debounce and dedupe BottomPanel re-renders to avoid swallowing mid-gesture taps"
+```
+
+---
+
+## Self-Review 요약 (Tasks 26-29 추가분)
+
+- 최종 종합 리뷰의 Critical 1건(def 스탯 비활성) + Important 3건(스킬 미사용, 세이브 마이그레이션, 재렌더 탭 씹힘)을 각각 Task 26~29로 커버.
+- Task 26은 `idleCombat.js`/`shop.js` 양쪽에 동일한 변경을 적용 — 두 파일이 로직을 복제하고 있다는 기존에 알려진 사실(Task 24 리뷰에서 지적)로 인해 한쪽만 고치면 다시 어긋나므로 반드시 둘 다 수정.
+- Task 27은 Task 21/22/24가 이미 구축한 `content.addEventListener('click', ...)` 단일 리스너 패턴에 네 번째 분기를 추가하는 방식으로, 기존 구조를 그대로 재사용.
+- Task 29는 Task 27 이후 진행 — 같은 `render` 함수를 건드리므로 순서를 지킨다.
+
 ## Self-Review 요약 (Tasks 22-24 추가분)
 
 - **사용자 신규 요구사항 커버:** 스크랩북+골드복원(Task 22), 하단 UI 드래그 최소화(Task 23), 상점 가챠(Task 24) — 모두 대응 Task 존재.
