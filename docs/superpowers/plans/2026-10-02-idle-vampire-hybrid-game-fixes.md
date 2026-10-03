@@ -1085,7 +1085,7 @@ Expected: FAIL — `Cannot find module '../../src/systems/shop.js'`
 
 `src/systems/shop.js`:
 ```js
-import { rollGrade } from '../data/dropTable.js';
+import { rollGrade, gradeRank } from '../data/dropTable.js';
 import { autoEquip } from './autoEquip.js';
 import { addItemToInventory } from './inventory.js';
 
@@ -1100,7 +1100,7 @@ export function pullGacha({ character, currency, inventory, scrapbook, autoEquip
     id: `gacha_${Date.now()}_${Math.floor(randomFn() * 100000)}`,
     name: `${grade} 장비`,
     grade,
-    statBonus: { atk: 1 },
+    statBonus: { atk: gradeRank(grade) + 1 },
     slot: 'weapon',
   };
 
@@ -1194,6 +1194,103 @@ Run: `npm test` → 전체 PASS
 ```bash
 git add src/systems/shop.js tests/systems/shop.test.js src/ui/BottomPanel.js tests/ui/BottomPanel.test.js
 git commit -m "feat: add gacha-style random equipment pull to shop tab"
+```
+
+---
+
+---
+
+### Task 25: 아이템 드롭 스탯에 등급별 편차 적용
+
+**배경:** Task 22 코드 리뷰에서 발견된 문제 — `resolveIdleKill`이 생성하는 모든 아이템이 등급과 무관하게 항상 `statBonus: { atk: 1 }`이라서, 무기 슬롯이 한 번 채워지면 `shouldAutoEquip`의 엄격한 `>` 비교가 다시는 충족되지 않는다(동일 등급 드롭끼리는 영원히 스탯 합이 같으므로). 결과적으로 Task 22의 스크랩북과 Task 24의 상점 가챠가 실제 플레이에서는 거의 작동하지 않는다. 이 Task는 등급이 높을수록 드롭 아이템의 atk가 커지도록 고쳐서, 교체/스크랩북/가챠 경로가 실제로 동작하게 만든다.
+
+**Files:**
+- Modify: `src/systems/idleCombat.js`
+- Modify: `tests/systems/idleCombat.test.js`
+
+- [ ] **Step 1: 실패하는 테스트 작성**
+
+`tests/systems/idleCombat.test.js`의 `resolveIdleKill` describe 블록에 추가:
+```js
+  it('드롭 아이템의 atk는 등급이 높을수록 커진다', () => {
+    const character = { equippedItems: [], exp: 0 };
+    const currency = { gold: 0 };
+    const inventory = [];
+    const scrapbook = [];
+
+    const normalResult = resolveIdleKill({
+      character,
+      currency,
+      inventory,
+      scrapbook,
+      autoEquipMinGrade: 'epic',
+      randomFn: () => 0,
+    });
+    const epicResult = resolveIdleKill({
+      character,
+      currency,
+      inventory,
+      scrapbook,
+      autoEquipMinGrade: 'epic',
+      randomFn: () => 0.99,
+    });
+
+    expect(normalResult.item.grade).toBe('normal');
+    expect(epicResult.item.grade).toBe('epic');
+    expect(epicResult.item.statBonus.atk).toBeGreaterThan(normalResult.item.statBonus.atk);
+  });
+```
+
+- [ ] **Step 2: 테스트 실패 확인**
+
+Run: `npx vitest run tests/systems/idleCombat.test.js`
+Expected: FAIL — 현재는 모든 아이템이 `atk: 1`로 고정되어 있어 `epicResult.item.statBonus.atk > normalResult.item.statBonus.atk`가 거짓
+
+- [ ] **Step 3: 구현 수정**
+
+`src/systems/idleCombat.js` 상단 import:
+```js
+import { rollGrade, gradeRank } from '../data/dropTable.js';
+```
+(기존 `import { rollGrade } from '../data/dropTable.js';`를 위 줄로 교체 — `gradeRank`를 추가로 가져온다.)
+
+`resolveIdleKill` 내부의 아이템 생성부:
+```js
+  const item = {
+    id: `item_${Date.now()}_${Math.floor(randomFn() * 100000)}`,
+    name: `${grade} 장비`,
+    grade,
+    statBonus: { atk: 1 },
+    slot: 'weapon',
+  };
+```
+를 다음으로 교체:
+```js
+  const item = {
+    id: `item_${Date.now()}_${Math.floor(randomFn() * 100000)}`,
+    name: `${grade} 장비`,
+    grade,
+    statBonus: { atk: gradeRank(grade) + 1 },
+    slot: 'weapon',
+  };
+```
+(normal→1, magic→2, rare→3, epic→4. `randomFn: () => 0`을 쓰는 기존 테스트들은 항상 normal 등급을 뽑으므로 `gradeRank('normal')+1 = 1`로 기존 값과 동일하여 깨지지 않는다 — 별도로 기존 테스트를 수정할 필요는 없다.)
+
+- [ ] **Step 4: 테스트 통과 확인**
+
+Run: `npx vitest run tests/systems/idleCombat.test.js`
+Expected: PASS (기존 5개 + 신규 1개 = 6개)
+
+- [ ] **Step 5: 빌드/전체 테스트 검증**
+
+Run: `npm run build` → 성공해야 함
+Run: `npm test` → 전체 PASS (기존 67개 + 신규 1개 = 68개)
+
+- [ ] **Step 6: 커밋**
+
+```bash
+git add src/systems/idleCombat.js tests/systems/idleCombat.test.js
+git commit -m "fix: scale dropped item stats with grade so auto-equip upgrades actually trigger"
 ```
 
 ---
