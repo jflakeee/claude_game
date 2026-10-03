@@ -3,7 +3,7 @@ import { renderTab } from '../../src/ui/BottomPanel.js';
 
 function baseState() {
   return {
-    character: { level: 3, skillPoints: 2, equippedItems: [] },
+    character: { level: 3, skillPoints: 2, equippedItems: [], skills: {} },
     currency: { gold: 120 },
     scrapbook: [],
     settings: { autoEquipMinGrade: 'normal' },
@@ -33,6 +33,14 @@ describe('renderTab', () => {
   it('skills 탭: 레벨과 스킬 포인트를 보여준다', () => {
     expect(renderTab('skills', baseState())).toContain('레벨 3');
     expect(renderTab('skills', baseState())).toContain('스킬 포인트 2');
+  });
+
+  it('skills 탭: 스킬 목록과 투자 버튼을 보여준다', () => {
+    const html = renderTab('skills', baseState());
+    expect(html).toContain('강타');
+    expect(html).toContain('철갑');
+    expect(html).toContain('data-action="learn-skill"');
+    expect(html).toContain('data-skill-id="power_strike"');
   });
 
   it('settings 탭: 자동 장착 최소 등급과 변경 버튼을 보여준다', () => {

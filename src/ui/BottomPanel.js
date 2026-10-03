@@ -3,6 +3,7 @@ import { GRADE_ORDER } from '../data/dropTable.js';
 import { itemGoldValue } from '../systems/inventory.js';
 import { restoreFromScrapbook } from '../systems/scrapbook.js';
 import { GACHA_COST, pullGacha } from '../systems/shop.js';
+import { SKILL_DEFS, learnOrLevelSkill } from '../data/skills.js';
 
 const TABS = ['equipment', 'skills', 'settings', 'shop'];
 const TAB_LABELS = { equipment: '장비', skills: '스킬', settings: '설정', shop: '상점' };
@@ -24,7 +25,13 @@ export function renderTab(tab, state) {
     return `<ul>${equippedHtml}</ul><div class="section"><p class="label">스크랩북</p>${scrapbookHtml}</div>`;
   }
   if (tab === 'skills') {
-    return `<p>레벨 ${state.character.level} · 스킬 포인트 ${state.character.skillPoints}</p>`;
+    const skillsHtml = Object.values(SKILL_DEFS)
+      .map((def) => {
+        const level = state.character.skills[def.id] || 0;
+        return `<p>${def.name} Lv.${level}/${def.maxLevel} <button data-action="learn-skill" data-skill-id="${def.id}" class="mock-button">투자</button></p>`;
+      })
+      .join('');
+    return `<p>레벨 ${state.character.level} · 스킬 포인트 ${state.character.skillPoints}</p>${skillsHtml}`;
   }
   if (tab === 'settings') {
     return `
@@ -92,6 +99,14 @@ export function mountBottomPanel(container) {
         scrapbook: state.scrapbook,
         autoEquipMinGrade: state.settings.autoEquipMinGrade,
       });
+      store.notify();
+      return;
+    }
+
+    const learnBtn = event.target.closest('[data-action="learn-skill"]');
+    if (learnBtn) {
+      const state = store.getState();
+      learnOrLevelSkill(state.character, learnBtn.dataset.skillId);
       store.notify();
       return;
     }
