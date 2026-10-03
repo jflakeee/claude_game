@@ -13,7 +13,7 @@ export function pullGacha({ character, currency, inventory, scrapbook, autoEquip
     id: `gacha_${Date.now()}_${Math.floor(randomFn() * 100000)}`,
     name: `${grade} 장비`,
     grade,
-    statBonus: { atk: gradeRank(grade) + 1 },
+    statBonus: { atk: gradeRank(grade) + 1, def: gradeRank(grade) + 1 },
     slot: 'weapon',
   };
 
