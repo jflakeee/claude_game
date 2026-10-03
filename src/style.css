@@ -41,3 +41,22 @@ html, body {
   padding: 8px;
   font-size: 13px;
 }
+
+.panel-handle {
+  width: 40px;
+  height: 5px;
+  margin: 6px auto;
+  border-radius: 3px;
+  background: #555;
+  cursor: grab;
+  touch-action: none;
+}
+
+#bottom-panel.minimized {
+  flex: 0 0 auto;
+}
+
+#bottom-panel.minimized .tab-bar,
+#bottom-panel.minimized .tab-content {
+  display: none;
+}

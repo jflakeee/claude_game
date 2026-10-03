@@ -39,6 +39,7 @@ export function renderTab(tab, state) {
 
 export function mountBottomPanel(container) {
   container.innerHTML = `
+    <div class="panel-handle" data-role="drag-handle"></div>
     <div class="tab-bar">
       ${TABS.map((t) => `<button data-tab="${t}" class="tab-button">${TAB_LABELS[t]}</button>`).join('')}
     </div>
@@ -75,6 +76,25 @@ export function mountBottomPanel(container) {
       restoreFromScrapbook(state.scrapbook, state.character, state.currency, restoreBtn.dataset.itemId);
       store.notify();
       return;
+    }
+  });
+
+  const handle = container.querySelector('[data-role="drag-handle"]');
+  let dragStartY = null;
+
+  handle.addEventListener('pointerdown', (event) => {
+    dragStartY = event.clientY;
+  });
+
+  handle.addEventListener('pointerup', (event) => {
+    if (dragStartY === null) return;
+    const deltaY = event.clientY - dragStartY;
+    dragStartY = null;
+
+    if (deltaY > 40) {
+      container.classList.add('minimized');
+    } else if (deltaY < -10 || Math.abs(deltaY) <= 5) {
+      container.classList.remove('minimized');
     }
   });
 
