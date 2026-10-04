@@ -1,0 +1,12 @@
+{
+  "base": "https://www.fungood.co.kr/claude_game/",
+  "bundle": "/claude_game/assets/index-D-6IX3ID.js",
+  "checks": [
+    "fresh save and responsive layout 320 390 1280",
+    "six grades craft and NPC auction deployed",
+    "live boss entry escape settlement",
+    "portal card and expanded iframe",
+    "seeded set and unique equipped effects UI"
+  ],
+  "errors": []
+}

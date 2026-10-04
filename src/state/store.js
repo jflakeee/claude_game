@@ -15,6 +15,16 @@ export function createStore() {
     runState: createRunState(),
     combatSession: null,
     lastResult: null,
+    materials: { ember: 1, frost: 1, ward: 1, dust: 0 },
+    progression: { kills: 0, bossWins: 0 },
+    market: {
+      stock: [],
+      buyback: [],
+      auctions: [],
+      deliveries: [],
+      history: [],
+      refreshedAt: 0,
+    },
   };
   const listeners = new Set();
 

@@ -1,3 +1,4 @@
+import { GRADE_ORDER } from "../data/dropTable.js";
 const STORAGE_KEY = "claude_game_save_v1";
 
 function resolveStorage(storage) {
@@ -48,7 +49,7 @@ export function hydrateState(saved, defaults) {
           (i) =>
             i &&
             typeof i.id === "string" &&
-            ["normal", "magic", "rare", "epic"].includes(i.grade) &&
+            GRADE_ORDER.includes(i.grade) &&
             i.slot &&
             i.statBonus,
         )
@@ -69,6 +70,27 @@ export function hydrateState(saved, defaults) {
     inventory: items(saved.inventory),
     scrapbook: items(saved.scrapbook),
     settings: { ...defaults.settings, ...saved.settings },
+    materials: Object.fromEntries(
+      Object.keys(defaults.materials).map((key) => [
+        key,
+        Math.floor(number(saved.materials?.[key], defaults.materials[key])),
+      ]),
+    ),
+    progression: {
+      ...defaults.progression,
+      kills: Math.floor(number(saved.progression?.kills, 0)),
+      bossWins: Math.floor(number(saved.progression?.bossWins, 0)),
+    },
+    market: {
+      ...defaults.market,
+      ...saved.market,
+      ...Object.fromEntries(
+        ["stock", "buyback", "auctions", "deliveries", "history"].map((key) => [
+          key,
+          Array.isArray(saved.market?.[key]) ? saved.market[key] : [],
+        ]),
+      ),
+    },
     runState: {
       ...defaults.runState,
       ...saved.runState,

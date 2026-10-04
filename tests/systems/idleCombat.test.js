@@ -111,7 +111,7 @@ describe('resolveIdleKill', () => {
       inventory,
       scrapbook,
       autoEquipMinGrade: 'epic',
-      randomFn: () => 0.99,
+      randomFn: () => 0.96,
     });
 
     expect(normalResult.item.grade).toBe('normal');

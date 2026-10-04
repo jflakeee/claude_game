@@ -6,8 +6,8 @@ function characterWithPoints(points) {
 }
 
 describe('SKILL_DEFS', () => {
-  it('power_strike와 iron_skin 두 개의 패시브 스킬을 정의한다', () => {
-    expect(Object.keys(SKILL_DEFS)).toEqual(['power_strike', 'iron_skin']);
+  it('기초 패시브와 심화 스킬, 오라, 저주 8종을 정의한다', () => {
+    expect(Object.keys(SKILL_DEFS)).toEqual(['power_strike', 'iron_skin','piercing','vampirism','frailty','chill','fury','renewal']);
   });
 });
 

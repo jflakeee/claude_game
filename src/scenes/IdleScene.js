@@ -6,9 +6,10 @@ import {
   STAGE_LENGTH_PX,
 } from "../systems/idleCombat.js";
 import { applyLevelUps } from "../systems/leveling.js";
-import { computeEffectiveStats } from "../systems/effectiveStats.js";
 import { prepareArt, drawRoom, floatingText } from "./art.js";
 import { sound } from "../audio.js";
+import { awardMaterials } from "../systems/crafting.js";
+import { computeCombatStats } from "../systems/effectiveStats.js";
 
 export class IdleScene extends Phaser.Scene {
   constructor() {
@@ -21,11 +22,19 @@ export class IdleScene extends Phaser.Scene {
     this.idleHp = 100;
     this.enemyHp = 10;
     this.redraw();
+    this.bossGate = document.createElement("button");
+    this.bossGate.className = "boss-gate";
+    this.bossGate.textContent = "♜ 보스 아레나";
+    document.getElementById("game-container").append(this.bossGate);
+    this.bossGate.addEventListener("click", () =>
+      this.scene.start("CombatScene", { encounter: "boss" }),
+    );
     this.resizeHandler = () => this.redraw();
     this.scale.on("resize", this.resizeHandler);
-    this.events.once("shutdown", () =>
-      this.scale.off("resize", this.resizeHandler),
-    );
+    this.events.once("shutdown", () => {
+      this.scale.off("resize", this.resizeHandler);
+      this.bossGate.remove();
+    });
     this.input.on("pointerup", () => {
       if (!document.querySelector("dialog[open]"))
         this.scene.start("CombatScene");
@@ -76,7 +85,7 @@ export class IdleScene extends Phaser.Scene {
   }
   update(time, delta) {
     const state = store.getState(),
-      stats = computeEffectiveStats(state.character);
+      stats = computeCombatStats(state.character);
     const dt = Math.min(delta, 50),
       active = state.settings.autoProgress !== false,
       fraction = this.progress.distancePx / STAGE_LENGTH_PX;
@@ -114,15 +123,33 @@ export class IdleScene extends Phaser.Scene {
       return;
     this.idleHp = Math.min(
       100,
-      this.idleHp + ((1 + stats.def * 0.12) * dt) / 1000,
+      this.idleHp +
+        ((1 +
+          stats.def * 0.12 +
+          stats.regen +
+          (stats.aura === "renewal"
+            ? stats.auraLevel * 0.6 + stats.defenseSynergy
+            : 0)) *
+          dt) /
+          1000,
     );
     advanceIdleProgress(this.progress, dt);
     this.tickAccumulator += dt;
     const interval = Math.max(300, 1000 - stats.atk * 5);
     if (this.tickAccumulator >= interval) {
       this.tickAccumulator -= interval;
-      const critical = Math.random() < (state.character.stats.crit || 0);
-      this.enemyHp -= stats.atk * (critical ? 2 : 1);
+      const critical = Math.random() < stats.crit;
+      const damage =
+        stats.atk *
+        (1 +
+          stats.synergy +
+          (stats.aura === "fury"
+            ? stats.auraLevel * 0.1 + stats.attackSynergy
+            : 0) +
+          (stats.curse === "frailty" ? stats.curseLevel * 0.08 : 0)) *
+        (critical ? 2 : 1);
+      this.enemyHp -= damage;
+      this.idleHp = Math.min(100, this.idleHp + damage * stats.lifeSteal);
       if (this.enemyHp > 0) {
         this.idleHp = Math.max(
           1,
@@ -132,7 +159,7 @@ export class IdleScene extends Phaser.Scene {
           this,
           this.enemy.x,
           this.enemy.y - 18,
-          String(stats.atk * (critical ? 2 : 1)),
+          String(Math.round(damage)),
           critical ? "#ffa5b0" : "#efd59a",
         );
       }
@@ -155,6 +182,7 @@ export class IdleScene extends Phaser.Scene {
           autoEquipMinGrade: state.settings.autoEquipMinGrade,
         });
         applyLevelUps(state.character);
+        awardMaterials(state);
         this.enemyHp = 10 + Math.min(20, this.progress.stageIndex * 2);
         this.enemy.setTexture(
           ["slime", "bat", "skull"][Math.floor(time / 1000) % 3],

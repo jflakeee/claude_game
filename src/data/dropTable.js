@@ -1,10 +1,12 @@
-export const GRADE_ORDER = ['normal', 'magic', 'rare', 'epic'];
+export const GRADE_ORDER = ["normal", "magic", "rare", "epic", "set", "unique"];
 
 export const GRADE_WEIGHTS = {
-  normal: 60,
+  normal: 58,
   magic: 25,
   rare: 12,
   epic: 3,
+  set: 1.5,
+  unique: 0.5,
 };
 
 export function rollGrade(randomFn = Math.random) {

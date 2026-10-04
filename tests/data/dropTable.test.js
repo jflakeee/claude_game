@@ -15,8 +15,8 @@ describe('rollGrade', () => {
     expect(rollGrade(() => 0)).toBe('normal');
   });
 
-  it('randomFn이 거의 1을 반환하면 가장 높은 등급(epic)이 나온다', () => {
-    expect(rollGrade(() => 0.9999)).toBe('epic');
+  it('randomFn이 거의 1을 반환하면 가장 높은 등급(unique)이 나온다', () => {
+    expect(rollGrade(() => 0.9999)).toBe('unique');
   });
 
   it('가중치 합이 100이 되는 경계값에서 정확히 다음 등급으로 넘어간다', () => {

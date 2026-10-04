@@ -1,0 +1,12 @@
+{
+  "patterns": [
+    "blast",
+    "nova",
+    "charge"
+  ],
+  "blastDamage": true,
+  "pack": true,
+  "phaseTwo": true,
+  "timeoutFailed": true,
+  "errors": []
+}

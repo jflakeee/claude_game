@@ -1,0 +1,21 @@
+{
+  "checks": [
+    "identify",
+    "ordered runeword",
+    "reroll preserves sockets",
+    "salvage and cube",
+    "rune conversion",
+    "skill prerequisites synergy aura curse selection",
+    "sell buyback",
+    "bid buyout claim",
+    "NPC rival bid and refund",
+    "expanded save migration restore",
+    "real time boss victory",
+    "boss loot and progression"
+  ],
+  "patterns": [
+    "blast"
+  ],
+  "phaseTwo": true,
+  "errors": []
+}

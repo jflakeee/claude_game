@@ -6,8 +6,21 @@ import { saveState, loadState, hydrateState } from "./state/persistence.js";
 import { mountBottomPanel, showToast } from "./ui/BottomPanel.js";
 import { finishCombat } from "./systems/combatLifecycle.js";
 import { unlockAudio } from "./audio.js";
+import { ensureMarket, tickMarket } from "./systems/market.js";
+import { GRADE_LABEL } from "./systems/items.js";
 
 store.setState(hydrateState(loadState(), store.getState()));
+tickMarket(store.getState());
+ensureMarket(store.getState());
+setInterval(() => {
+  const state = store.getState();
+  const changed = tickMarket(state);
+  const refreshed = ensureMarket(state);
+  if (changed || refreshed) {
+    saveState(state);
+    store.notify();
+  }
+}, 1000);
 if (store.getState().combatSession) {
   finishCombat(store.getState(), "interrupted");
   saveState(store.getState());
@@ -39,25 +52,23 @@ function refresh() {
     item &&
     lastItemId &&
     item.id !== lastItemId &&
-    ["rare", "epic"].includes(item.grade) &&
+    ["rare", "epic", "set", "unique"].includes(item.grade) &&
     s.settings.notifications
   )
-    showToast(
-      `${item.grade === "epic" ? "영웅" : "희귀"} 장비를 자동 장착했습니다!`,
-    );
+    showToast(`${GRADE_LABEL[item.grade]} 장비를 자동 장착했습니다!`);
   lastItemId = item?.id;
   if (s.lastResult && s.lastResult !== shownResult) {
     shownResult = s.lastResult;
     const r = s.lastResult;
     document.getElementById("result-title").textContent =
       {
-        cleared: "생존 성공!",
+        cleared: r.encounter === "boss" ? "보스 격파!" : "생존 성공!",
         failed: "다시 도전해요",
         escaped: "안전하게 귀환",
         interrupted: "탐험 기록 복구",
       }[r.outcome] || "탐험 완료";
     document.getElementById("result-description").textContent =
-      `${r.kills || 0}마리 처치 · ${Math.floor((r.elapsedMs || 0) / 1000)}초 생존. 획득한 보상을 모두 받았습니다.`;
+      `${r.kills || 0}마리 처치 · ${Math.floor((r.elapsedMs || 0) / 1000)}초 생존. 획득한 보상을 모두 받았습니다.${r.encounter === "boss" && r.outcome === "cleared" ? " 화염·서리·수호 룬 각각 2개 획득!" : ""}`;
     dialog.querySelector(".result-rewards").innerHTML =
       `<div><b>${r.gold}</b><small>GOLD</small></div><div><b>${r.exp}</b><small>EXP</small></div><div><b>${r.items}</b><small>장비</small></div>`;
     dialog.showModal();

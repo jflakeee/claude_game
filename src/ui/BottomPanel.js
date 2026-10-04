@@ -1,13 +1,20 @@
 import { store } from "../state/globalStore.js";
-import { GRADE_ORDER } from "../data/dropTable.js";
+import { GRADE_WEIGHTS, GRADE_ORDER } from "../data/dropTable.js";
 import { itemGoldValue, INVENTORY_CAPACITY } from "../systems/inventory.js";
 import { restoreFromScrapbook } from "../systems/scrapbook.js";
 import { GACHA_COST, pullGacha } from "../systems/shop.js";
-import { SKILL_DEFS, learnOrLevelSkill } from "../data/skills.js";
-import { computeEffectiveStats } from "../systems/effectiveStats.js";
+import { learnOrLevelSkill } from "../data/skills.js";
 import { GRADE_LABEL, equipInventoryItem } from "../systems/items.js";
 import { saveState } from "../state/persistence.js";
 import { sound } from "../audio.js";
+import {
+  sectionNav,
+  renderCraft,
+  renderMarket,
+  renderSkillTree,
+  expansionAction,
+} from "./ExpansionPanel.js";
+import { RUNES, RUNEWORDS } from "../data/expansion.js";
 
 const TABS = {
   equipment: "장비",
@@ -29,27 +36,19 @@ function gradeControl(state) {
   return `<div class="setting-row"><div><b>자동 장착 최소 등급</b><small>${gradeLabel(state.settings.autoEquipMinGrade)} 이상 · 더 좋은 장비로 교체</small></div><button data-action="cycle-auto-equip-grade" aria-label="자동 장착 등급 변경" class="grade ${esc(state.settings.autoEquipMinGrade)}">${gradeLabel(state.settings.autoEquipMinGrade)} ↻</button></div>`;
 }
 function itemRow(item, action, label, status = "장착 중") {
-  return `<li class="item-row"><span class="item-icon grade ${esc(item.grade)}">⚔</span><div class="item-info"><b>${esc(item.name)} (${esc(item.grade)})</b><small><span class="grade ${esc(item.grade)}">${gradeLabel(item.grade)}</span> · 공격 +${Number(item.statBonus?.atk) || 0} · 방어 +${Number(item.statBonus?.def) || 0}</small></div>${action ? `<button data-action="${action}" data-item-id="${esc(item.id)}">${label}</button>` : `<span class="equipped-label">${esc(status)}</span>`}</li>`;
+  if (item.identified === false)
+    return `<li class="item-row"><span class="item-icon epic">?</span><div class="item-info"><b>미감정 ${esc(item.name)}</b><small>옵션 비공개 · 장착 전 감정 필요</small></div><button data-action="identify" data-item-id="${esc(item.id)}">감정 ${(GRADE_ORDER.indexOf(item.grade) + 1) * 10}G</button></li>`;
+  return `<li class="item-row"><span class="item-icon grade ${esc(item.grade)}">⚔</span><div class="item-info"><b>${esc(item.name)} (${esc(item.grade)})</b><small><span class="grade ${esc(item.grade)}">${gradeLabel(item.grade)}</span> · ${esc({ weapon: "무기", armor: "갑옷", charm: "부적" }[item.slot] || "")} · 공격 +${Number(item.statBonus?.atk) || 0} · 방어 +${Number(item.statBonus?.def) || 0}</small><small>${item.setId ? "별빛 세트 · " : item.uniqueEffect ? "별의 심장: 치명타 +10% · " : ""}${item.affix ? esc(item.affix.name) + " · " : ""}${(item.sockets || []).map((r) => RUNES[r]?.glyph || "?").join(" ")}${item.runeword ? " · " + esc(RUNEWORDS.find((w) => w.id === item.runeword)?.name) : ""}</small></div>${action ? `<button data-action="${action}" data-item-id="${esc(item.id)}">${label}</button>` : `<span class="equipped-label">${esc(status)}</span>`}</li>`;
 }
 
 export function renderTab(tab, state) {
+  if (tab === "equipment" && state.view === "craft")
+    return sectionNav(tab, "craft") + renderCraft(state);
+  if (tab === "shop" && ["merchant", "auction"].includes(state.view))
+    return sectionNav(tab, state.view) + renderMarket(state, state.view);
   if (tab === "equipment")
-    return `${gradeControl(state)}<div class="section-title">장착 장비 <span>WEAPON</span></div><ul class="item-list">${state.character.equippedItems.length ? state.character.equippedItems.map((i) => itemRow(i)).join("") : '<li class="empty-state">장착한 장비 없음 · 탐험하며 장비를 찾아보세요.</li>'}</ul><div class="section-title">인벤토리 <span>${(state.inventory || []).length}/${INVENTORY_CAPACITY}</span></div><ul class="item-list">${(state.inventory || []).map((i) => itemRow(i, "equip-item", "장착")).join("") || '<li class="empty-state">새로운 장비가 이곳에 모입니다.</li>'}</ul><p class="hint">가방이 가득 차면 새 장비는 자동으로 골드가 됩니다.</p><div class="section-title">스크랩북 <span>${(state.scrapbook || []).length}개</span></div><ul class="item-list">${(state.scrapbook || []).map((i) => itemRow(i, "restore-scrapbook-item", `${itemGoldValue(i)}G 복원`)).join("") || '<li class="empty-state">스크랩북이 비어 있습니다.</li>'}</ul>`;
-  if (tab === "skills") {
-    const stats = computeEffectiveStats({
-      ...state.character,
-      stats: state.character.stats || { atk: 10, def: 5 },
-      equippedItems: state.character.equippedItems || [],
-    });
-    return `<div class="section-title">레벨 ${state.character.level} <span>스킬 포인트 ${state.character.skillPoints}</span></div><div class="stats-grid"><div><small>공격력</small><strong>${stats.atk}</strong></div><div><small>방어력</small><strong>${stats.def}</strong></div><div><small>치명타</small><strong>${Math.round((state.character.stats?.crit ?? 0.05) * 100)}%</strong></div></div><p class="hint">장비와 패시브가 반영된 수치 · 치명타 피해 2배</p>${Object.values(
-      SKILL_DEFS,
-    )
-      .map((def) => {
-        const level = state.character.skills[def.id] || 0;
-        return `<div class="skill-row"><span class="skill-icon">${def.id === "power_strike" ? "✦" : "⬡"}</span><div><b>${def.name} <small>Lv.${level}/${def.maxLevel}</small></b><p>${def.id === "power_strike" ? "공격력" : "방어력"} +${level * 10}% · 단계마다 10%</p></div><button data-action="learn-skill" data-skill-id="${def.id}" ${level >= def.maxLevel || !state.character.skillPoints ? "disabled" : ""}>${level >= def.maxLevel ? "최대" : "투자"}</button></div>`;
-      })
-      .join("")}`;
-  }
+    return `${sectionNav("equipment", "gear")}${gradeControl(state)}<div class="section-title">장착 장비 <span>WEAPON</span></div><ul class="item-list">${state.character.equippedItems.length ? state.character.equippedItems.map((i) => itemRow(i)).join("") : '<li class="empty-state">장착한 장비 없음 · 탐험하며 장비를 찾아보세요.</li>'}</ul><div class="section-title">인벤토리 <span>${(state.inventory || []).length}/${INVENTORY_CAPACITY}</span></div><ul class="item-list">${(state.inventory || []).map((i) => itemRow(i, "equip-item", "장착")).join("") || '<li class="empty-state">새로운 장비가 이곳에 모입니다.</li>'}</ul><p class="hint">가방이 가득 차면 새 장비는 자동으로 골드가 됩니다.</p><div class="section-title">스크랩북 <span>${(state.scrapbook || []).length}개</span></div><ul class="item-list">${(state.scrapbook || []).map((i) => itemRow(i, "restore-scrapbook-item", `${itemGoldValue(i)}G 복원`)).join("") || '<li class="empty-state">스크랩북이 비어 있습니다.</li>'}</ul>`;
+  if (tab === "skills") return renderSkillTree(state);
   if (tab === "settings")
     return `<div class="section-title">탐험 설정 <span>PREFERENCES</span></div>${gradeControl(state)}${[
       ["sound", "사운드", "공격·획득·버튼 효과음"],
@@ -64,7 +63,7 @@ export function renderTab(tab, state) {
         "",
       )}<p class="hint">진행도는 이 브라우저에 자동 저장됩니다.<br>전투 도중 나가거나 새로고침해도 획득한 보상은 유지됩니다.</p>`;
   if (tab === "shop")
-    return `<div class="shop-card"><span class="shop-orb">✧</span><span class="eyebrow">STARLIGHT CHEST</span><h2>별빛 장비 상자</h2><p>작은 행운이 다음 탐험을 바꿉니다.</p><div class="odds"><span>일반 60%</span><span class="magic">고급 25%</span><span class="rare">희귀 12%</span><span class="epic">영웅 3%</span></div><button class="primary" data-action="pull-gacha" ${state.currency.gold < GACHA_COST ? "disabled" : ""}>뽑기 (${GACHA_COST}골드)</button><small>골드: ${state.currency.gold} · 자동 장착 기준 적용</small></div>${state.lastPurchase ? `<div class="section-title">방금 획득한 장비 <span>${esc(state.lastPurchase.destination)}</span></div><ul class="item-list">${itemRow(state.lastPurchase.item, null, null, state.lastPurchase.destination)}</ul>` : ""}`;
+    return `${sectionNav("shop", "gacha")}<div class="shop-card"><span class="shop-orb">✧</span><span class="eyebrow">STARLIGHT CHEST</span><h2>별빛 장비 상자</h2><p>작은 행운이 다음 탐험을 바꿉니다.</p><div class="odds">${GRADE_ORDER.map((g) => `<span class="${g}">${GRADE_LABEL[g]} ${GRADE_WEIGHTS[g]}%</span>`).join("")}</div><button class="primary" data-action="pull-gacha" ${state.currency.gold < GACHA_COST ? "disabled" : ""}>뽑기 (${GACHA_COST}골드)</button><small>골드: ${state.currency.gold} · 자동 장착 기준 적용</small></div>${state.lastPurchase ? `<div class="section-title">방금 획득한 장비 <span>${esc(state.lastPurchase.destination)}</span></div><ul class="item-list">${itemRow(state.lastPurchase.item, null, null, state.lastPurchase.destination)}</ul>` : ""}`;
   return "";
 }
 
@@ -78,6 +77,24 @@ export function mountBottomPanel(container) {
     )
     .join("")}</div><div class="tab-content" role="tabpanel"></div>`;
   const content = container.querySelector(".tab-content");
+  const views = { equipment: "gear", shop: "gacha" };
+  function updateCraftPreview() {
+    const field = content.querySelector('[data-field="craft-item"]');
+    if (!field) return;
+    let preview = content.querySelector(".craft-preview");
+    if (!preview) {
+      preview = document.createElement("div");
+      preview.className = "craft-preview hint";
+      field.parentElement.after(preview);
+    }
+    const item = store.getState().inventory.find((i) => i.id === field.value);
+    preview.textContent = !item
+      ? "장비를 선택하면 현재 소켓과 룬워드를 확인할 수 있습니다."
+      : item.identified === false
+        ? "미감정 장비 · 먼저 감정해 주세요."
+        : `소켓 ${(item.sockets || []).length}/2 · ${(item.sockets || []).map((r) => RUNES[r]?.name).join(" → ") || "비어 있음"}${item.runeword ? " · " + RUNEWORDS.find((w) => w.id === item.runeword)?.name + " 완성" : ""}`;
+  }
+  content.addEventListener("change", updateCraftPreview);
   let activeTab = "equipment",
     lastHtml = "",
     timer,
@@ -86,12 +103,30 @@ export function mountBottomPanel(container) {
     clearTimeout(timer);
     timer = setTimeout(() => {
       if (pointerDown) return;
-      const html = renderTab(activeTab, store.getState());
+      if (document.activeElement?.tagName === "SELECT") return;
+      const html = renderTab(activeTab, {
+        ...store.getState(),
+        view: views[activeTab],
+      });
       if (html !== lastHtml) {
         lastHtml = html;
         const scroll = content.scrollTop;
+        const fields = Object.fromEntries(
+          [...content.querySelectorAll("[data-field]")].map((el) => [
+            el.dataset.field,
+            el.value,
+          ]),
+        );
         content.innerHTML = html;
+        content.querySelectorAll("[data-field]").forEach((el) => {
+          if (
+            fields[el.dataset.field] !== undefined &&
+            [...el.options].some((o) => o.value === fields[el.dataset.field])
+          )
+            el.value = fields[el.dataset.field];
+        });
         content.scrollTop = scroll;
+        updateCraftPreview();
       }
     }, 50);
   }
@@ -118,6 +153,14 @@ export function mountBottomPanel(container) {
     }),
   );
   content.addEventListener("click", (event) => {
+    const viewButton = event.target.closest("[data-view]");
+    if (viewButton) {
+      views[activeTab] = viewButton.dataset.view;
+      lastHtml = "";
+      content.scrollTop = 0;
+      render();
+      return;
+    }
     const button = event.target.closest("[data-action]");
     if (!button) return;
     const state = store.getState(),
@@ -175,6 +218,19 @@ export function mountBottomPanel(container) {
         : "골드가 부족합니다.";
       if (result.success) sound("reward");
     }
+    const fields = Object.fromEntries(
+      [...content.querySelectorAll("[data-field]")].map((el) => [
+        el.dataset.field,
+        el.value,
+      ]),
+    );
+    const expansion = expansionAction(
+      state,
+      action,
+      button.dataset.itemId,
+      fields,
+    );
+    if (expansion) message = expansion.message;
     sound("click");
     saveState(state);
     store.notify();
@@ -212,6 +268,11 @@ export function mountBottomPanel(container) {
     if (!dragged) minimize(!container.classList.contains("minimized"));
     dragged = false;
   });
+  setInterval(() => {
+    content.querySelectorAll("[data-auction-end]").forEach((el) => {
+      el.textContent = `${Math.max(0, Math.ceil((Number(el.dataset.auctionEnd) - Date.now()) / 1000))}초 남음`;
+    });
+  }, 1000);
   store.subscribe(render);
   render();
 }

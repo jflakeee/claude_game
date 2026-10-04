@@ -11,6 +11,24 @@ const palette = {
   s: 0xc6cec8,
 };
 const patterns = {
+  guardian: [
+    "...pp......pp...",
+    "..pqqp....pqqp..",
+    ".ppqqppppppqqpp.",
+    "..pwwwwwwwwwwp..",
+    "..pwkkwwwwkkwp..",
+    "..pwkkwwwwkkwp..",
+    "..pwwwwkkwwwwp..",
+    "...pwwwwwwwwp...",
+    "....pwwwwwwp....",
+    "..qqppppppppqq..",
+    ".qqqqppppppqqqq.",
+    "qqqqqppppppqqqqq",
+    ".qq..pppppp..qq.",
+    ".....qq..qq.....",
+    "....qqq..qqq....",
+    "...qqqq..qqqq...",
+  ],
   hero: [
     "................",
     ".....oo..oo.....",
