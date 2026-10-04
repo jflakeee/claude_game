@@ -10,6 +10,8 @@ import { prepareArt, drawRoom, floatingText } from "./art.js";
 import { sound } from "../audio.js";
 import { awardMaterials } from "../systems/crafting.js";
 import { computeCombatStats } from "../systems/effectiveStats.js";
+import { strikeIdleEnemy, advanceIdleEnemy } from "../systems/idleEffects.js";
+import { recordLoot } from "../systems/items.js";
 
 export class IdleScene extends Phaser.Scene {
   constructor() {
@@ -20,7 +22,7 @@ export class IdleScene extends Phaser.Scene {
     this.progress = store.getState().runState;
     this.tickAccumulator = 0;
     this.idleHp = 100;
-    this.enemyHp = 10;
+    this.idleEnemy = { hp: 10 };
     this.redraw();
     this.bossGate = document.createElement("button");
     this.bossGate.className = "boss-gate";
@@ -52,6 +54,12 @@ export class IdleScene extends Phaser.Scene {
       .setScale(3)
       .setDepth(3);
     this.enemy = this.add.sprite(w * 0.75, h * 0.7, "slime").setScale(3);
+    this.effects = this.add.graphics().setDepth(2);
+    this.effectsLabel = this.add.text(22, 95, "", {
+      fontFamily: "system-ui",
+      fontSize: "10px",
+      color: "#c8b0df",
+    });
     this.hpTrack = this.add.rectangle(0, 0, 38, 4, 0x11212a).setDepth(5);
     this.hpFill = this.add.rectangle(0, 0, 38, 4, 0x83c7a4).setDepth(6);
     this.stageLabel = this.add.text(22, 22, "", {
@@ -110,6 +118,40 @@ export class IdleScene extends Phaser.Scene {
     );
     this.enemy.y = this.scale.height * 0.7 + Math.sin(time / 180) * 3;
     this.enemy.setFlipX(direction > 0);
+    this.effects.clear();
+    if (stats.aura) {
+      this.effects.lineStyle(
+        2,
+        stats.aura === "fury" ? 0xe5b46f : 0x77d3b3,
+        0.4,
+      );
+      this.effects.strokeCircle(x, this.character.y, 70);
+    }
+    if (this.idleEnemy.curseTimer > 0) {
+      this.effects.lineStyle(
+        2,
+        this.idleEnemy.curse === "chill" ? 0x8dd9f1 : 0xeb97bb,
+        0.8,
+      );
+      this.effects.strokeCircle(this.enemy.x, this.enemy.y, 25);
+    }
+    this.effectsLabel.setText(
+      [
+        stats.aura === "fury"
+          ? "분노 오라"
+          : stats.aura === "renewal"
+            ? "회복 오라"
+            : "",
+        stats.curse === "chill"
+          ? "한기 저주"
+          : stats.curse === "frailty"
+            ? "분쇄 저주"
+            : "",
+        stats.slow ? "서리장막 둔화" : "",
+      ]
+        .filter(Boolean)
+        .join(" · "),
+    );
     this.stageLabel.setText(
       `STAGE ${String(this.progress.stageIndex + 1).padStart(2, "0")}  /  별빛 미궁`,
     );
@@ -135,26 +177,19 @@ export class IdleScene extends Phaser.Scene {
     );
     advanceIdleProgress(this.progress, dt);
     this.tickAccumulator += dt;
+    this.idleHp = Math.max(
+      1,
+      this.idleHp - advanceIdleEnemy(this.idleEnemy, dt, stats),
+    );
     const interval = Math.max(300, 1000 - stats.atk * 5);
     if (this.tickAccumulator >= interval) {
       this.tickAccumulator -= interval;
-      const critical = Math.random() < stats.crit;
-      const damage =
-        stats.atk *
-        (1 +
-          stats.synergy +
-          (stats.aura === "fury"
-            ? stats.auraLevel * 0.1 + stats.attackSynergy
-            : 0) +
-          (stats.curse === "frailty" ? stats.curseLevel * 0.08 : 0)) *
-        (critical ? 2 : 1);
-      this.enemyHp -= damage;
-      this.idleHp = Math.min(100, this.idleHp + damage * stats.lifeSteal);
-      if (this.enemyHp > 0) {
-        this.idleHp = Math.max(
-          1,
-          this.idleHp - Math.max(1, 4 - stats.def * 0.5),
-        );
+      const { damage, critical, healing } = strikeIdleEnemy(
+        this.idleEnemy,
+        stats,
+      );
+      this.idleHp = Math.min(100, this.idleHp + healing);
+      if (this.idleEnemy.hp > 0) {
         floatingText(
           this,
           this.enemy.x,
@@ -173,7 +208,7 @@ export class IdleScene extends Phaser.Scene {
         duration: 230,
         onComplete: () => slash.destroy(),
       });
-      if (this.enemyHp <= 0) {
+      if (this.idleEnemy.hp <= 0) {
         const result = resolveIdleKill({
           character: state.character,
           currency: state.currency,
@@ -183,7 +218,13 @@ export class IdleScene extends Phaser.Scene {
         });
         applyLevelUps(state.character);
         awardMaterials(state);
-        this.enemyHp = 10 + Math.min(20, this.progress.stageIndex * 2);
+        recordLoot(state, result.item, {
+          equipped: result.autoEquipResult.equipped,
+          convertedToGold: result.convertedToGold,
+        });
+        this.idleEnemy = {
+          hp: 10 + Math.min(20, this.progress.stageIndex * 2),
+        };
         this.enemy.setTexture(
           ["slime", "bat", "skull"][Math.floor(time / 1000) % 3],
         );

@@ -57,6 +57,19 @@ const runeOptions = () =>
   Object.entries(RUNES)
     .map(([id, r]) => `<option value="${id}">${r.glyph} ${r.name}</option>`)
     .join("");
+export function cubePreview(state, grade) {
+  const rank = GRADE_ORDER.indexOf(grade);
+  if (rank < 0 || rank >= GRADE_ORDER.length - 1)
+    return "합성할 등급을 선택하세요.";
+  const items = state.inventory
+    .filter(
+      (i) => i.grade === grade && i.identified !== false && !i.sockets?.length,
+    )
+    .slice(0, 3);
+  const slot =
+    { weapon: "무기", armor: "갑옷", charm: "부적" }[items[0]?.slot] || "장비";
+  return `소비 재료 ${items.length}/3: ${items.map((i) => i.name).join(" + ") || "없음"} · ${(rank + 1) * 30}G → ${GRADE_LABEL[GRADE_ORDER[rank + 1]]} ${slot} 1개 (옵션 무작위)${items.length < 3 ? " · 재료 부족" : ""}`;
+}
 export function renderCraft(state) {
   return `<div class="craft-banner"><span class="eyebrow">THE ASTRAL FORGE</span><h2>별빛 제작실</h2><p>룬의 순서가 장비의 운명을 바꿉니다.</p></div><div class="material-strip">${Object.entries(
     RUNES,

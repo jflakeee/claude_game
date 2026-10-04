@@ -1,0 +1,10 @@
+{
+  "checks": [
+    "equipped gear to inventory",
+    "craft equipped item and current socket preview",
+    "exact cube materials preview",
+    "idle aura curse presentation",
+    "boss resize and escape"
+  ],
+  "errors": []
+}

@@ -4,7 +4,11 @@ import { itemGoldValue, INVENTORY_CAPACITY } from "../systems/inventory.js";
 import { restoreFromScrapbook } from "../systems/scrapbook.js";
 import { GACHA_COST, pullGacha } from "../systems/shop.js";
 import { learnOrLevelSkill } from "../data/skills.js";
-import { GRADE_LABEL, equipInventoryItem } from "../systems/items.js";
+import {
+  GRADE_LABEL,
+  equipInventoryItem,
+  unequipItem,
+} from "../systems/items.js";
 import { saveState } from "../state/persistence.js";
 import { sound } from "../audio.js";
 import {
@@ -13,6 +17,7 @@ import {
   renderMarket,
   renderSkillTree,
   expansionAction,
+  cubePreview,
 } from "./ExpansionPanel.js";
 import { RUNES, RUNEWORDS } from "../data/expansion.js";
 
@@ -35,9 +40,15 @@ const gradeLabel = (grade) => GRADE_LABEL[grade] || "일반";
 function gradeControl(state) {
   return `<div class="setting-row"><div><b>자동 장착 최소 등급</b><small>${gradeLabel(state.settings.autoEquipMinGrade)} 이상 · 더 좋은 장비로 교체</small></div><button data-action="cycle-auto-equip-grade" aria-label="자동 장착 등급 변경" class="grade ${esc(state.settings.autoEquipMinGrade)}">${gradeLabel(state.settings.autoEquipMinGrade)} ↻</button></div>`;
 }
-function itemRow(item, action, label, status = "장착 중") {
+function itemRow(
+  item,
+  action,
+  label,
+  status = "장착 중",
+  canIdentify = action === "equip-item",
+) {
   if (item.identified === false)
-    return `<li class="item-row"><span class="item-icon epic">?</span><div class="item-info"><b>미감정 ${esc(item.name)}</b><small>옵션 비공개 · 장착 전 감정 필요</small></div><button data-action="identify" data-item-id="${esc(item.id)}">감정 ${(GRADE_ORDER.indexOf(item.grade) + 1) * 10}G</button></li>`;
+    return `<li class="item-row"><span class="item-icon epic">?</span><div class="item-info"><b>미감정 ${esc(item.name)}</b><small>옵션 비공개 · 장착 전 감정 필요</small></div>${canIdentify ? `<button data-action="identify" data-item-id="${esc(item.id)}">감정 ${(GRADE_ORDER.indexOf(item.grade) + 1) * 10}G</button>` : `<span class="equipped-label">${esc(status)}</span>`}</li>`;
   return `<li class="item-row"><span class="item-icon grade ${esc(item.grade)}">⚔</span><div class="item-info"><b>${esc(item.name)} (${esc(item.grade)})</b><small><span class="grade ${esc(item.grade)}">${gradeLabel(item.grade)}</span> · ${esc({ weapon: "무기", armor: "갑옷", charm: "부적" }[item.slot] || "")} · 공격 +${Number(item.statBonus?.atk) || 0} · 방어 +${Number(item.statBonus?.def) || 0}</small><small>${item.setId ? "별빛 세트 · " : item.uniqueEffect ? "별의 심장: 치명타 +10% · " : ""}${item.affix ? esc(item.affix.name) + " · " : ""}${(item.sockets || []).map((r) => RUNES[r]?.glyph || "?").join(" ")}${item.runeword ? " · " + esc(RUNEWORDS.find((w) => w.id === item.runeword)?.name) : ""}</small></div>${action ? `<button data-action="${action}" data-item-id="${esc(item.id)}">${label}</button>` : `<span class="equipped-label">${esc(status)}</span>`}</li>`;
 }
 
@@ -47,7 +58,7 @@ export function renderTab(tab, state) {
   if (tab === "shop" && ["merchant", "auction"].includes(state.view))
     return sectionNav(tab, state.view) + renderMarket(state, state.view);
   if (tab === "equipment")
-    return `${sectionNav("equipment", "gear")}${gradeControl(state)}<div class="section-title">장착 장비 <span>WEAPON</span></div><ul class="item-list">${state.character.equippedItems.length ? state.character.equippedItems.map((i) => itemRow(i)).join("") : '<li class="empty-state">장착한 장비 없음 · 탐험하며 장비를 찾아보세요.</li>'}</ul><div class="section-title">인벤토리 <span>${(state.inventory || []).length}/${INVENTORY_CAPACITY}</span></div><ul class="item-list">${(state.inventory || []).map((i) => itemRow(i, "equip-item", "장착")).join("") || '<li class="empty-state">새로운 장비가 이곳에 모입니다.</li>'}</ul><p class="hint">가방이 가득 차면 새 장비는 자동으로 골드가 됩니다.</p><div class="section-title">스크랩북 <span>${(state.scrapbook || []).length}개</span></div><ul class="item-list">${(state.scrapbook || []).map((i) => itemRow(i, "restore-scrapbook-item", `${itemGoldValue(i)}G 복원`)).join("") || '<li class="empty-state">스크랩북이 비어 있습니다.</li>'}</ul>`;
+    return `${sectionNav("equipment", "gear")}${gradeControl(state)}<div class="section-title">장착 장비 <span>WEAPON</span></div><ul class="item-list">${state.character.equippedItems.length ? state.character.equippedItems.map((i) => itemRow(i, "unequip-item", "가방으로")).join("") : '<li class="empty-state">장착한 장비 없음 · 탐험하며 장비를 찾아보세요.</li>'}</ul><div class="section-title">인벤토리 <span>${(state.inventory || []).length}/${INVENTORY_CAPACITY}</span></div><ul class="item-list">${(state.inventory || []).map((i) => itemRow(i, "equip-item", "장착")).join("") || '<li class="empty-state">새로운 장비가 이곳에 모입니다.</li>'}</ul><p class="hint">가방이 가득 차면 새 장비는 자동으로 골드가 됩니다.</p><div class="section-title">스크랩북 <span>${(state.scrapbook || []).length}개</span></div><ul class="item-list">${(state.scrapbook || []).map((i) => itemRow(i, "restore-scrapbook-item", `${itemGoldValue(i)}G 복원`)).join("") || '<li class="empty-state">스크랩북이 비어 있습니다.</li>'}</ul>`;
   if (tab === "skills") return renderSkillTree(state);
   if (tab === "settings")
     return `<div class="section-title">탐험 설정 <span>PREFERENCES</span></div>${gradeControl(state)}${[
@@ -63,7 +74,21 @@ export function renderTab(tab, state) {
         "",
       )}<p class="hint">진행도는 이 브라우저에 자동 저장됩니다.<br>전투 도중 나가거나 새로고침해도 획득한 보상은 유지됩니다.</p>`;
   if (tab === "shop")
-    return `${sectionNav("shop", "gacha")}<div class="shop-card"><span class="shop-orb">✧</span><span class="eyebrow">STARLIGHT CHEST</span><h2>별빛 장비 상자</h2><p>작은 행운이 다음 탐험을 바꿉니다.</p><div class="odds">${GRADE_ORDER.map((g) => `<span class="${g}">${GRADE_LABEL[g]} ${GRADE_WEIGHTS[g]}%</span>`).join("")}</div><button class="primary" data-action="pull-gacha" ${state.currency.gold < GACHA_COST ? "disabled" : ""}>뽑기 (${GACHA_COST}골드)</button><small>골드: ${state.currency.gold} · 자동 장착 기준 적용</small></div>${state.lastPurchase ? `<div class="section-title">방금 획득한 장비 <span>${esc(state.lastPurchase.destination)}</span></div><ul class="item-list">${itemRow(state.lastPurchase.item, null, null, state.lastPurchase.destination)}</ul>` : ""}`;
+    return `${sectionNav("shop", "gacha")}<div class="shop-card"><span class="shop-orb">✧</span><span class="eyebrow">STARLIGHT CHEST</span><h2>별빛 장비 상자</h2><p>작은 행운이 다음 탐험을 바꿉니다.</p><div class="odds">${GRADE_ORDER.map((g) => `<span class="${g}">${GRADE_LABEL[g]} ${GRADE_WEIGHTS[g]}%</span>`).join("")}</div><button class="primary" data-action="pull-gacha" ${state.currency.gold < GACHA_COST ? "disabled" : ""}>뽑기 (${GACHA_COST}골드)</button><small>골드: ${state.currency.gold} · 자동 장착 기준 적용</small></div>${
+      state.lastPurchase
+        ? `<div class="section-title">방금 획득한 장비 <span>${esc(state.lastPurchase.destination)}</span></div><ul class="item-list">${itemRow(
+            (state.inventory || []).find(
+              (i) => i.id === state.lastPurchase.item.id,
+            ) || state.lastPurchase.item,
+            null,
+            null,
+            state.lastPurchase.destination,
+            (state.inventory || []).some(
+              (i) => i.id === state.lastPurchase.item.id,
+            ),
+          )}</ul>`
+        : ""
+    }`;
   return "";
 }
 
@@ -93,6 +118,18 @@ export function mountBottomPanel(container) {
       : item.identified === false
         ? "미감정 장비 · 먼저 감정해 주세요."
         : `소켓 ${(item.sockets || []).length}/2 · ${(item.sockets || []).map((r) => RUNES[r]?.name).join(" → ") || "비어 있음"}${item.runeword ? " · " + RUNEWORDS.find((w) => w.id === item.runeword)?.name + " 완성" : ""}`;
+    if (item)
+      preview.textContent += ` · 분해 시 별가루 ${GRADE_ORDER.indexOf(item.grade) + 1}개${item.identified === false ? ` · 감정 ${10 * (GRADE_ORDER.indexOf(item.grade) + 1)}G` : ""}`;
+    const cube = content.querySelector('[data-field="cube-grade"]');
+    if (cube) {
+      let hint = content.querySelector(".cube-preview");
+      if (!hint) {
+        hint = document.createElement("div");
+        hint.className = "cube-preview hint";
+        cube.after(hint);
+      }
+      hint.textContent = cubePreview(store.getState(), cube.value);
+    }
   }
   content.addEventListener("change", updateCraftPreview);
   let activeTab = "equipment",
@@ -185,6 +222,8 @@ export function mountBottomPanel(container) {
       if (equipInventoryItem(state, button.dataset.itemId))
         message = "장비를 장착했습니다.";
     }
+    if (action === "unequip-item")
+      message = unequipItem(state, button.dataset.itemId).message;
     if (action === "restore-scrapbook-item") {
       const result = restoreFromScrapbook(
         state.scrapbook,

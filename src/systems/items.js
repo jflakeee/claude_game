@@ -1,6 +1,6 @@
 import { rollGrade, gradeRank } from "../data/dropTable.js";
 import { autoEquip } from "./autoEquip.js";
-import { addItemToInventory } from "./inventory.js";
+import { addItemToInventory, INVENTORY_CAPACITY } from "./inventory.js";
 
 export const GRADE_LABEL = {
   normal: "일반",
@@ -44,7 +44,31 @@ export function receiveItem(state, item) {
     state.currency,
     result.equipped,
   );
-  return { ...result, ...inventory };
+  const delivery = { ...result, ...inventory };
+  recordLoot(state, item, delivery);
+  return delivery;
+}
+export function recordLoot(state, item, delivery = {}) {
+  if (gradeRank(item.grade) < 2) return;
+  state.lootNotice = {
+    id: item.id,
+    message: `${GRADE_LABEL[item.grade]} 장비 획득! ${delivery.convertedToGold ? `${delivery.convertedToGold}G 환산` : delivery.equipped ? "자동 장착" : item.identified === false ? "가방에서 감정하세요." : "인벤토리 보관"}`,
+  };
+}
+export function unequipItem(state, id) {
+  const index = state.character.equippedItems.findIndex((i) => i.id === id);
+  if (index < 0)
+    return { ok: false, message: "장착한 장비를 찾을 수 없습니다." };
+  if (state.inventory.length >= INVENTORY_CAPACITY)
+    return {
+      ok: false,
+      message: "가방이 가득 찼습니다. 장비는 장착 상태로 유지됩니다.",
+    };
+  state.inventory.push(...state.character.equippedItems.splice(index, 1));
+  return {
+    ok: true,
+    message: "장비를 가방으로 옮겼습니다. 제작실에서 강화할 수 있습니다.",
+  };
 }
 export function equipInventoryItem(state, id) {
   const index = state.inventory.findIndex((item) => item.id === id);

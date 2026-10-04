@@ -1,7 +1,7 @@
 import Phaser from "phaser";
 import { store } from "../state/globalStore.js";
 import { beginCombat, finishCombat } from "../systems/combatLifecycle.js";
-import { createArena, stepArena } from "../systems/arena.js";
+import { createArena, stepArena, resizeArena } from "../systems/arena.js";
 import {
   tickCombat,
   addReward,
@@ -12,6 +12,7 @@ import { rollItem } from "../systems/items.js";
 import { saveState } from "../state/persistence.js";
 import { prepareArt, drawRoom, floatingText } from "./art.js";
 import { sound } from "../audio.js";
+import { arenaBounds, bossLayout } from "../systems/arenaLayout.js";
 
 export class CombatScene extends Phaser.Scene {
   constructor() {
@@ -79,10 +80,8 @@ export class CombatScene extends Phaser.Scene {
       .querySelector("button")
       .addEventListener("click", () => this.endCombat("escaped"));
     this.resizeHandler = () => {
-      this.arena.player.x *= this.scale.width / this.arena.width;
-      this.arena.player.y *= this.scale.height / this.arena.height;
-      this.arena.width = this.scale.width;
-      this.arena.height = this.scale.height;
+      resizeArena(this.arena, this.scale.width, this.scale.height);
+      this.drag = null;
       this.room.destroy();
       this.room = drawRoom(this, this.scale.width, this.scale.height, true);
       this.drawSeal();
@@ -196,20 +195,27 @@ export class CombatScene extends Phaser.Scene {
     const w = this.scale.width,
       h = this.scale.height;
     this.seal.lineStyle(3, 0x70485f, 0.7);
-    this.seal.strokeCircle(w / 2, h * 0.42, 95);
-    this.seal.strokeCircle(w / 2, h * 0.42, 85);
+    const { x, y, radius } = bossLayout(w, h),
+      bounds = arenaBounds(w, h, "boss");
+    this.seal.strokeCircle(x, y, radius);
+    this.seal.strokeCircle(x, y, radius * 0.89);
     for (let i = 0; i < 6; i++) {
       const a = (i * Math.PI) / 3,
         b = a + (Math.PI * 2) / 3;
       this.seal.lineBetween(
-        w / 2 + 80 * Math.cos(a),
-        h * 0.42 + 80 * Math.sin(a),
-        w / 2 + 80 * Math.cos(b),
-        h * 0.42 + 80 * Math.sin(b),
+        x + radius * 0.84 * Math.cos(a),
+        y + radius * 0.84 * Math.sin(a),
+        x + radius * 0.84 * Math.cos(b),
+        y + radius * 0.84 * Math.sin(b),
       );
     }
     this.seal.lineStyle(6, 0x563c52);
-    this.seal.strokeRect(12, 142, w - 24, h - 170);
+    this.seal.strokeRect(
+      12,
+      bounds.top - 20,
+      w - 24,
+      bounds.bottom - bounds.top + 40,
+    );
   }
   drawEffects(time) {
     const g = this.effects,

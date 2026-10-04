@@ -7,7 +7,6 @@ import { mountBottomPanel, showToast } from "./ui/BottomPanel.js";
 import { finishCombat } from "./systems/combatLifecycle.js";
 import { unlockAudio } from "./audio.js";
 import { ensureMarket, tickMarket } from "./systems/market.js";
-import { GRADE_LABEL } from "./systems/items.js";
 
 store.setState(hydrateState(loadState(), store.getState()));
 tickMarket(store.getState());
@@ -47,16 +46,10 @@ function refresh() {
     `${s.currency.gold.toLocaleString()} G`;
   document.getElementById("level-value").textContent =
     `Lv.${s.character.level} · ${s.character.exp}/${s.character.level * 50} XP`;
-  const item = s.character.equippedItems[0];
-  if (
-    item &&
-    lastItemId &&
-    item.id !== lastItemId &&
-    ["rare", "epic", "set", "unique"].includes(item.grade) &&
-    s.settings.notifications
-  )
-    showToast(`${GRADE_LABEL[item.grade]} 장비를 자동 장착했습니다!`);
-  lastItemId = item?.id;
+  const notice = s.lootNotice;
+  if (notice && notice.id !== lastItemId && s.settings.notifications)
+    showToast(notice.message);
+  lastItemId = notice?.id;
   if (s.lastResult && s.lastResult !== shownResult) {
     shownResult = s.lastResult;
     const r = s.lastResult;

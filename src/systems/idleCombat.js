@@ -36,10 +36,11 @@ export function resolveIdleKill({
   const item = rollItem(randomFn);
 
   const autoEquipResult = autoEquip(item, character, autoEquipMinGrade);
+  let inventoryResult = {};
   if (!autoEquipResult.equipped) {
-    addItemToInventory(inventory, item, currency, false);
+    inventoryResult = addItemToInventory(inventory, item, currency, false);
   } else if (autoEquipResult.replaced) {
     scrapbook.push(autoEquipResult.replaced);
   }
-  return { goldDrop, expDrop, item, autoEquipResult };
+  return { goldDrop, expDrop, item, autoEquipResult, ...inventoryResult };
 }

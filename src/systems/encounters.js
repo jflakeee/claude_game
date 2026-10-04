@@ -1,4 +1,5 @@
 import { BOSS_NAMES } from "../data/expansion.js";
+import { arenaBounds, bossLayout } from "./arenaLayout.js";
 export function initEncounter(
   arena,
   { encounter = "survival", bossWins = 0 } = {},
@@ -17,8 +18,8 @@ export function initEncounter(
     const hp = 360 + Math.min(bossWins, 8) * 60;
     arena.enemies.push({
       id: arena.nextId++,
-      x: arena.width / 2,
-      y: arena.height * 0.42,
+      x: bossLayout(arena.width, arena.height).x,
+      y: bossLayout(arena.width, arena.height).y,
       hp,
       maxHp: hp,
       boss: true,
@@ -26,7 +27,8 @@ export function initEncounter(
       name: BOSS_NAMES[bossWins % 3],
       phase: 1,
     });
-    arena.player.y = arena.height * 0.75;
+    const bounds = arenaBounds(arena.width, arena.height, "boss");
+    arena.player.y = bounds.top + (bounds.bottom - bounds.top) * 0.78;
     arena.spawn = 12;
   }
   return arena;
@@ -63,8 +65,9 @@ export function updateEncounters(arena, dt, stats, random, events) {
   }
   arena.packTimer -= dt;
   if (arena.packTimer <= 0 && arena.enemies.length < 25) {
+    const bounds = arenaBounds(arena.width, arena.height, arena.encounter);
     const x = random() < 0.5 ? 12 : arena.width - 12,
-      y = 140 + random() * Math.max(1, arena.height - 240),
+      y = bounds.top + random() * Math.max(1, bounds.bottom - bounds.top - 30),
       packId = arena.nextId;
     for (let n = 0; n < 4; n++)
       arena.enemies.push({

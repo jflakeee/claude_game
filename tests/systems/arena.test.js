@@ -39,7 +39,7 @@ describe("실제 생존 전투", () => {
     a.spawn = 999;
     for (let i = 0; i < 200; i++) stepArena(a, 50, stats, { x: 1, y: -1 });
     expect(a.player.x).toBe(370);
-    expect(a.player.y).toBe(88);
+    expect(a.player.y).toBe(140); // Keep the hero below the health HUD.
   });
   it("레벨 1 캐릭터도 이동하며 3분 생존할 수 있다", () => {
     const a = createArena(390, 844);

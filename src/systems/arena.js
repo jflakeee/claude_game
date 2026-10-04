@@ -1,4 +1,5 @@
 import { initEncounter, updateEncounters } from "./encounters.js";
+import { arenaBounds } from "./arenaLayout.js";
 // Deterministic combat simulation; rendering and input live in CombatScene.
 export function createArena(width, height, options = {}) {
   const arena = {
@@ -36,9 +37,10 @@ export function stepArena(
   }
   const moveSpeed = arena.playerHex > 0 ? 148 : 155;
   p.x = Math.max(20, Math.min(arena.width - 20, p.x + dx * moveSpeed * dt));
+  const bounds = arenaBounds(arena.width, arena.height, arena.encounter);
   p.y = Math.max(
-    arena.encounter === "boss" ? 145 : 88,
-    Math.min(arena.height - 36, p.y + dy * moveSpeed * dt),
+    bounds.top,
+    Math.min(bounds.bottom, p.y + dy * moveSpeed * dt),
   );
   arena.spawn -= dt;
   if (arena.spawn <= 0 && arena.enemies.length < 30) {
@@ -48,9 +50,9 @@ export function stepArena(
       x: side < 2 ? (side ? arena.width + 12 : -12) : random() * arena.width,
       y:
         side < 2
-          ? 90 + random() * Math.max(1, arena.height - 130)
+          ? bounds.top + random() * Math.max(1, bounds.bottom - bounds.top)
           : side === 2
-            ? 75
+            ? bounds.top - 12
             : arena.height + 12,
       hp: 10 + Math.floor(arena.elapsed / 30) * 2,
       kind: Math.floor(random() * 3),
@@ -185,4 +187,37 @@ export function stepArena(
   arena.enemies = arena.enemies.filter((e) => e.hp > 0);
   arena.bolts = arena.bolts.filter((b) => b.life > 0);
   return events;
+}
+
+export function resizeArena(arena, width, height) {
+  if (width <= 0 || height <= 0) return;
+  const oldBounds = arenaBounds(arena.width, arena.height, arena.encounter),
+    newBounds = arenaBounds(width, height, arena.encounter);
+  const sx = width / arena.width,
+    sy =
+      (newBounds.bottom - newBounds.top) / (oldBounds.bottom - oldBounds.top);
+  const y = (value) => newBounds.top + (value - oldBounds.top) * sy;
+  const move = (p) => {
+    p.x *= sx;
+    p.y = y(p.y);
+    if (Number.isFinite(p.tx)) p.tx *= sx;
+    if (Number.isFinite(p.ty)) p.ty = y(p.ty);
+  };
+  for (const p of [
+    arena.player,
+    ...arena.enemies,
+    ...arena.bolts,
+    ...arena.hazards,
+    ...arena.enemyShots,
+  ]) {
+    move(p);
+    if (p.dash) move(p.dash);
+  }
+  arena.width = width;
+  arena.height = height;
+  arena.player.x = Math.max(20, Math.min(width - 20, arena.player.x));
+  arena.player.y = Math.max(
+    newBounds.top,
+    Math.min(newBounds.bottom, arena.player.y),
+  );
 }
