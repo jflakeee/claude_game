@@ -1,0 +1,41 @@
+const {chromium}=require('C:/Users/a/node_modules/playwright-core');
+const fs=require('node:fs'),assert=require('node:assert/strict');
+const out='docs/qa/2026-10-05/deployment';fs.mkdirSync(out,{recursive:true});
+(async()=>{
+ const browser=await chromium.launch({headless:true});
+ try {
+ const context=await browser.newContext({viewport:{width:390,height:844},isMobile:true,hasTouch:true});
+ const page=await context.newPage(),errors=[];page.on('pageerror',e=>errors.push(e.message));
+ const response=await page.goto('https://fungood.co.kr/claude_game/?release=cf25c97',{waitUntil:'networkidle'});
+ assert.equal(response.status(),200);
+ const bundle=await page.locator('script[type="module"]').getAttribute('src');
+ assert.match(bundle,/index-wX80CaSN/);
+ assert.equal(await page.evaluate(()=>typeof window.__claudeGame),'undefined');
+ await page.getByRole('tab',{name:'설정'}).click();
+ const motion=page.getByRole('switch',{name:'화면 움직임',exact:true});
+ await motion.click();
+ await page.waitForFunction(()=>document.documentElement.classList.contains('motion-off'));
+ await page.screenshot({path:out+'/01-settings.png'});
+ await page.reload({waitUntil:'networkidle'});
+ await page.getByRole('tab',{name:'설정'}).click();
+ await page.waitForFunction(()=>document.querySelector('[data-setting="motion"]')?.getAttribute('aria-checked')==='false');
+ await page.locator('canvas').tap({position:{x:160,y:180}});
+ await page.getByRole('button',{name:'나가기'}).waitFor();
+ assert.equal(await page.locator('#combat-health-trail').count(),1);
+ await page.waitForTimeout(1200);
+ await page.screenshot({path:out+'/02-combat.png'});
+ await page.getByRole('button',{name:'나가기'}).click();
+ await page.getByRole('button',{name:'탐험 계속'}).waitFor();
+ await page.screenshot({path:out+'/03-result.png'});
+ await page.goto('https://www.fungood.co.kr/game_portal/#/play/claude-game',{waitUntil:'networkidle'});
+ const frame=page.frameLocator('iframe');
+ await frame.getByRole('heading',{name:'Claude Game',exact:true}).waitFor();
+ assert.match(await frame.locator('script[type="module"]').getAttribute('src'),/index-wX80CaSN/);
+ await frame.getByRole('tab',{name:'설정'}).click();
+ await frame.getByRole('switch',{name:'화면 움직임',exact:true}).waitFor();
+ await page.screenshot({path:out+'/04-portal.png'});
+ assert.deepEqual(errors,[]);
+ fs.writeFileSync(out+'/results.json',JSON.stringify({sourceCommit:'cf25c97',gamePages:'fd17f7a',domainPages:'35e3ac8',bundle,status:response.status(),checks:['apex URL redirect and game load','production build without debug hook','motion setting persists','combat and result','portal iframe new bundle'],errors},null,2));
+ console.log('Production checks passed',bundle);
+ } finally {await browser.close();}
+})().catch(e=>{console.error(e);process.exitCode=1});
