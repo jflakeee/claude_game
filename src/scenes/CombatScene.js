@@ -1,4 +1,5 @@
 import Phaser from "phaser";
+import { motionEnabled, advanceHealthTrail, deathEcho, rewardFlight } from "../systems/presentation.js";
 import { store } from "../state/globalStore.js";
 import { beginCombat, finishCombat } from "../systems/combatLifecycle.js";
 import { createArena, stepArena, resizeArena } from "../systems/arena.js";
@@ -20,6 +21,9 @@ export class CombatScene extends Phaser.Scene {
   }
   create(data = {}) {
     this.ending = false;
+    this.completeExit = null;
+    this.hitEffects = new Map();
+    this.healthTrail = { hp: 100, trail: 100, hold: 0 };
     prepareArt(this);
     document.getElementById("app").classList.add("in-combat");
     this.scale.setParentSize(
@@ -60,7 +64,7 @@ export class CombatScene extends Phaser.Scene {
     this.hud = document.createElement("div");
     this.hud.className = "combat-hud";
     this.hud.innerHTML =
-      '<div class="combat-top"><div><span class="eyebrow">SURVIVAL</span><strong id="combat-time">03:00</strong></div><button id="leave-combat" class="secondary">나가기 ↗</button></div><div class="health-line"><span>HP <b id="combat-hp">100</b></span><span id="combat-kills">0 처치</span></div><div class="health-track"><div id="combat-health-bar"></div></div><div class="combat-help">드래그 / 방향키로 이동 · 공격은 자동</div>';
+      '<div class="combat-top"><div><span class="eyebrow">SURVIVAL</span><strong id="combat-time">03:00</strong></div><button id="leave-combat" class="secondary">나가기 ↗</button></div><div class="health-line"><span>HP <b id="combat-hp">100</b></span><span id="combat-kills">0 처치</span></div><div class="health-track"><div id="combat-health-trail"></div><div id="combat-health-bar"></div></div><div class="combat-help">드래그 / 방향키로 이동 · 공격은 자동</div>';
     document.getElementById("game-container").append(this.hud);
     this.hud.insertAdjacentHTML(
       "beforeend",
@@ -90,7 +94,7 @@ export class CombatScene extends Phaser.Scene {
     this.events.once("shutdown", () => {
       this.scale.off("resize", this.resizeHandler);
       this.hud.remove();
-      document.getElementById("app").classList.remove("in-combat");
+      document.getElementById("app").classList.remove("in-combat", "result-pending");
     });
     store.notify();
   }
@@ -127,9 +131,11 @@ export class CombatScene extends Phaser.Scene {
           ...(Math.random() < 0.25 ? { item: rollItem() } : {}),
         });
         floatingText(this, event.x, event.y, "+4G", "#e8cb82");
+        rewardFlight(this, event.x, event.y, "#combat-kills");
         sound("reward");
         saveState(store.getState());
-      } else if (event.type === "hit")
+      } else if (event.type === "hit") {
+        this.hitEffects.set(event.targetId, { until: time + 120, ...event });
         floatingText(
           this,
           event.x,
@@ -137,9 +143,9 @@ export class CombatScene extends Phaser.Scene {
           String(Math.round(event.damage)),
           "#ffe6c1",
         );
-      else if (event.type === "hurt") {
+      } else if (event.type === "hurt") {
         sound("hurt");
-        this.cameras.main.shake(80, 0.003);
+        if (motionEnabled()) this.cameras.main.shake(80, 0.003);
       } else if (event.type === "warning") {
         this.warning = event.message;
         this.warningUntil = time + 2000;
@@ -148,11 +154,11 @@ export class CombatScene extends Phaser.Scene {
     const player = this.arena.player;
     this.player.setPosition(
       player.x,
-      player.y + (x || y ? Math.sin(time / 100) * 2 : 0),
+      player.y + (motionEnabled() && (x || y) ? Math.sin(time / 100) * 2 : 0),
     );
     if (x) this.player.setFlipX(x < 0);
     this.player.setAlpha(
-      this.arena.invulnerable > 0 ? (Math.sin(time / 50) > 0 ? 0.55 : 1) : 1,
+      this.arena.invulnerable > 0 ? 0.65 : 1,
     );
     this.syncSprites(this.arena.enemies, this.enemySprites, (e) =>
       this.add
@@ -168,6 +174,20 @@ export class CombatScene extends Phaser.Scene {
     this.syncSprites(this.arena.bolts, this.boltSprites, (b) =>
       this.add.star(b.x, b.y, 4, 3, 8, 0xffdc93).setDepth(5),
     );
+    for (const [id, fx] of this.hitEffects) {
+      const sprite = this.enemySprites.get(id);
+      const model = this.arena.enemies.find(e => e.id === id);
+      if (!sprite || time >= fx.until) {
+        if (sprite) sprite.setTint(model?.leader ? 0xd595f4 : 0xffffff);
+        this.hitEffects.delete(id);
+        continue;
+      }
+      const remaining = fx.until - time;
+      if (remaining > 55) sprite.setTintFill(0xffedba);
+      else sprite.setTint(model?.leader ? 0xd595f4 : 0xffffff);
+      if (motionEnabled()) sprite.setPosition(model.x + fx.direction.x * 4 * remaining / 120,
+        model.y + fx.direction.y * 4 * remaining / 120);
+    }
     this.session.hp = player.hp;
     tickCombat(this.session, dt, player.hp);
     if (this.encounter === "boss") {
@@ -185,6 +205,8 @@ export class CombatScene extends Phaser.Scene {
       `${String(Math.floor(seconds / 60)).padStart(2, "0")}:${String(seconds % 60).padStart(2, "0")}`;
     this.hud.querySelector("#combat-hp").textContent = Math.ceil(player.hp);
     this.hud.querySelector("#combat-health-bar").style.width = `${player.hp}%`;
+    const trail = advanceHealthTrail(this.healthTrail, player.hp, dt);
+    this.hud.querySelector("#combat-health-trail").style.width = `${motionEnabled() ? trail : player.hp}%`;
     this.hud.querySelector("#combat-kills").textContent =
       `${this.session.kills} 처치 · ${this.session.rewards.gold}G`;
     if (this.session.outcome) this.endCombat(this.session.outcome);
@@ -269,12 +291,16 @@ export class CombatScene extends Phaser.Scene {
         `${boss.phase}단계 · ${Math.ceil(boss.hp)}/${boss.maxHp}`;
       this.hud.querySelector("#boss-health").style.width =
         `${(boss.hp / boss.maxHp) * 100}%`;
+    } else if (this.encounter === "boss" && a.bossDefeated) {
+      this.hud.querySelector("#boss-phase").textContent = "격파 완료";
+      this.hud.querySelector("#boss-health").style.width = "0%";
     }
   }
   syncSprites(models, sprites, create) {
     const ids = new Set(models.map((e) => e.id));
     for (const [id, sprite] of sprites)
       if (!ids.has(id)) {
+        if (sprites === this.enemySprites) deathEcho(this, sprite);
         sprite.destroy();
         sprites.delete(id);
       }
@@ -284,17 +310,29 @@ export class CombatScene extends Phaser.Scene {
     }
   }
   endCombat(outcome) {
-    if (this.ending) return;
+    if (this.ending) {
+      this.completeExit?.();
+      return;
+    }
     this.ending = true;
     const state = store.getState();
     finishCombat(state, outcome);
     saveState(state);
-    document.getElementById("app").classList.remove("in-combat");
-    this.scale.setParentSize(
-      this.scale.parent.clientWidth,
-      this.scale.parent.clientHeight,
-    );
-    this.scene.start("IdleScene");
-    store.notify();
+    let exited = false;
+    this.completeExit = () => {
+      if (exited) return;
+      exited = true;
+      document.getElementById("app").classList.remove("in-combat", "result-pending");
+      this.scale.setParentSize(this.scale.parent.clientWidth, this.scale.parent.clientHeight);
+      this.scene.start("IdleScene");
+      store.notify();
+    };
+    if (outcome === "cleared" && motionEnabled()) {
+      document.getElementById("app").classList.add("result-pending");
+      this.hud.querySelector(".combat-effects").textContent =
+        this.encounter === "boss" ? "보스 격파 · 보상을 정리합니다" : "생존 성공 · 보상을 정리합니다";
+      this.hud.querySelector("button").textContent = "결과 보기 ↗";
+      this.time.delayedCall(420, this.completeExit);
+    } else this.completeExit();
   }
 }

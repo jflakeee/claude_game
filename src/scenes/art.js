@@ -1,3 +1,4 @@
+import { motionEnabled } from "../systems/presentation.js";
 const palette = {
   o: 0xe88768,
   a: 0xffb291,
@@ -162,6 +163,9 @@ export function drawRoom(scene, width, height, combat = false) {
   return g;
 }
 export function floatingText(scene, x, y, text, color = "#efd59a") {
+  scene.feedbackLabels ||= new Set();
+  for (const old of scene.feedbackLabels) if (!old.active) scene.feedbackLabels.delete(old);
+  if (scene.feedbackLabels.size >= 24) return;
   const label = scene.add
     .text(x, y, text, {
       fontFamily: "system-ui",
@@ -173,11 +177,12 @@ export function floatingText(scene, x, y, text, color = "#efd59a") {
     })
     .setOrigin(0.5)
     .setDepth(12);
+  scene.feedbackLabels.add(label);
   scene.tweens.add({
     targets: label,
-    y: y - 28,
+    y: motionEnabled() ? y - 28 : y,
     alpha: 0,
     duration: 800,
-    onComplete: () => label.destroy(),
+    onComplete: () => { scene.feedbackLabels.delete(label); label.destroy(); },
   });
 }

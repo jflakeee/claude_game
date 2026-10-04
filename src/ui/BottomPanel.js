@@ -63,6 +63,7 @@ export function renderTab(tab, state) {
   if (tab === "settings")
     return `<div class="section-title">탐험 설정 <span>PREFERENCES</span></div>${gradeControl(state)}${[
       ["sound", "사운드", "공격·획득·버튼 효과음"],
+      ["motion", "화면 움직임", "흔들림·이동 연출 · 기기 동작 감소 설정 우선"],
       ["notifications", "알림", "희귀 장비 획득 시 게임 안에서 알림"],
       ["autoProgress", "자동 진행", "방치 탐험과 재화 수집"],
     ]

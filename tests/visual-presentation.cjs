@@ -1,0 +1,86 @@
+const {chromium}=require('C:/Users/a/node_modules/playwright-core');
+const fs=require('node:fs');
+const assert=require('node:assert/strict');
+const out='docs/qa/2026-10-05/presentation';fs.mkdirSync(out,{recursive:true});
+(async()=>{
+ const browser=await chromium.launch({headless:true});
+ try {
+ const context=await browser.newContext({viewport:{width:390,height:844},reducedMotion:'no-preference',recordVideo:{dir:out+'/video',size:{width:390,height:844}}});
+ const page=await context.newPage();const errors=[];page.on('pageerror',e=>errors.push(e.message));
+ await page.goto('http://127.0.0.1:5173/claude_game/',{waitUntil:'networkidle'});
+ await page.waitForFunction(()=>window.__claudeGame);
+ await page.getByRole('tab',{name:'설정'}).click();
+ await page.getByRole('switch',{name:'화면 움직임',exact:true}).click();
+ assert.equal(await page.locator('html').evaluate(e=>e.classList.contains('motion-off')),true);
+ await page.screenshot({path:out+'/01-settings.png'});
+ await page.getByRole('switch',{name:'화면 움직임',exact:true}).click();
+ await page.waitForFunction(()=>window.__claudeGame.store.getState().settings.motion === true);
+ await page.evaluate(()=>{
+   const game=window.__claudeGame.game;
+   game.scene.stop('IdleScene');game.scene.start('CombatScene');
+   const s=game.scene.getScene('CombatScene');
+   s.arena.spawn=999;s.arena.packTimer=999;s.arena.attack=999;s.arena.enemies=[];s.arena.bolts=[];
+   s.arena.player.hp=60;s.stats.def=0;
+   s.arena.enemies.push({id:9000,x:s.arena.player.x+75,y:s.arena.player.y,hp:100,kind:0,leader:true});
+   s.update(s.game.loop.time,16);s.scene.pause();
+ });
+ await page.waitForTimeout(50);
+ const bars=await page.evaluate(()=>({hp:parseFloat(document.querySelector('#combat-health-bar').style.width),trail:parseFloat(document.querySelector('#combat-health-trail').style.width)}));
+ console.log('health',bars,'errors',errors);
+ assert.ok(bars.trail>bars.hp);
+ await page.screenshot({path:out+'/02-health-trail.png'});
+ await page.evaluate(()=>{
+   const s=window.__claudeGame.game.scene.getScene('CombatScene'),e=s.arena.enemies[0];
+   s.arena.bolts.push({id:9001,x:e.x-5,y:e.y,vx:320,vy:0,life:1,damage:1,pierce:0,hitIds:[]});
+   s.update(1000,16);
+ });
+ await page.waitForTimeout(35);
+ await page.screenshot({path:out+'/03-hit.png'});
+ await page.waitForTimeout(250);
+ assert.equal(await page.evaluate(()=>{const s=window.__claudeGame.game.scene.getScene('CombatScene');s.update(1250,16);return s.enemySprites.get(9000).tintTopLeft;}),0xd595f4);
+ await page.evaluate(()=>{
+   const s=window.__claudeGame.game.scene.getScene('CombatScene'),e=s.arena.enemies[0];
+   s.arena.bolts.push({id:9002,x:e.x-5,y:e.y,vx:320,vy:0,life:1,damage:999,pierce:0,hitIds:[]});
+   s.update(1300,16);
+ });
+ await page.waitForTimeout(60);
+ await page.screenshot({path:out+'/04-death.png'});
+ await page.waitForTimeout(300);
+ assert.equal(await page.evaluate(()=>window.__claudeGame.game.scene.getScene('CombatScene').session.kills),1);
+ const settlement=await page.evaluate(()=>{const {game,store}=window.__claudeGame,s=game.scene.getScene('CombatScene');s.endCombat('cleared');const first=store.getState().currency.gold;s.endCombat('cleared');return {first,second:store.getState().currency.gold};});
+ assert.equal(settlement.first,settlement.second);
+ await page.waitForTimeout(200);
+ assert.equal(await page.locator('dialog[open]').count(),1);
+ await page.screenshot({path:out+'/05-result.png'});
+ await page.getByRole('button',{name:'탐험 계속',exact:true}).click();
+ const bossEnding=await page.evaluate(()=>{
+   const game=window.__claudeGame.game;
+   game.scene.stop('IdleScene');game.scene.start('CombatScene',{encounter:'boss'});
+   const s=game.scene.getScene('CombatScene');s.scene.pause();
+   s.arena.attack=999;s.arena.spawn=999;s.update(3000,16);
+   s.arena.enemies.find(e=>e.boss).hp=0;s.update(3016,16);
+   window.__claudeGame.store.notify();
+   return {width:document.querySelector('#boss-health').style.width,dialog:!!document.querySelector('dialog[open]'),ending:s.ending};
+ });
+ assert.deepEqual(bossEnding,{width:'0%',dialog:false,ending:true});
+ await page.screenshot({path:out+'/08-boss-ending.png'});
+ await page.evaluate(()=>window.__claudeGame.game.scene.resume('CombatScene'));
+ await page.waitForFunction(()=>document.querySelector('dialog[open]'));
+ assert.match(await page.locator('#result-title').innerText(),/보스 격파/);
+ assert.equal(await page.locator('.reward-flight').count(),0);
+ await page.getByRole('button',{name:'탐험 계속',exact:true}).click();
+ await page.emulateMedia({reducedMotion:'reduce'});
+ await page.evaluate(()=>{const game=window.__claudeGame.game;game.scene.stop('IdleScene');game.scene.start('CombatScene');const s=game.scene.getScene('CombatScene');s.arena.spawn=999;s.arena.attack=999;s.arena.enemies=[{id:9999,x:s.arena.player.x,y:s.arena.player.y,hp:999,kind:0}];s.update(2000,16);s.scene.pause();});
+ await page.waitForTimeout(50);
+ assert.equal(await page.evaluate(()=>window.__claudeGame.game.scene.getScene('CombatScene').cameras.main.shakeEffect.isRunning),false);
+ await page.screenshot({path:out+'/06-reduced-motion.png'});
+ await page.getByRole('button',{name:'나가기'}).click();
+ await page.getByRole('button',{name:'탐험 계속',exact:true}).click();
+ await page.setViewportSize({width:1280,height:900});await page.waitForTimeout(200);
+ await page.screenshot({path:out+'/07-desktop.png'});
+ assert.deepEqual(errors,[]);
+ const videoPath=await page.video().path();
+ fs.writeFileSync(out+'/results.json',JSON.stringify({errors,bars,settlement,bossEnding,videoPath,checks:['motion toggle','damage history','leader tint restored','single kill reward','repeat end settles once','boss death then result','reward flight shutdown cleanup','reduced motion camera','mobile and desktop'],passed:true},null,2));
+ await context.close();
+ } finally {await browser.close();}
+})().catch(e=>{console.error(e);process.exitCode=1});

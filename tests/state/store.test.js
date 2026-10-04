@@ -9,7 +9,7 @@ describe('createStore', () => {
     expect(state.currency.gold).toBe(0);
     expect(state.inventory).toEqual([]);
     expect(state.scrapbook).toEqual([]);
-    expect(state.settings).toEqual({ autoEquipMinGrade: 'normal', sound: true, notifications: true, autoProgress: true });
+    expect(state.settings).toEqual({ autoEquipMinGrade: 'normal', sound: true, motion: true, notifications: true, autoProgress: true });
     expect(state.runState.mode).toBe('idle');
   });
 

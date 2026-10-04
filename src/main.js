@@ -7,6 +7,7 @@ import { mountBottomPanel, showToast } from "./ui/BottomPanel.js";
 import { finishCombat } from "./systems/combatLifecycle.js";
 import { unlockAudio } from "./audio.js";
 import { ensureMarket, tickMarket } from "./systems/market.js";
+import { motionEnabled } from "./systems/presentation.js";
 
 store.setState(hydrateState(loadState(), store.getState()));
 tickMarket(store.getState());
@@ -40,17 +41,39 @@ mountBottomPanel(document.getElementById("bottom-panel"));
 const dialog = document.getElementById("result-dialog");
 let shownResult = null,
   lastItemId = null;
+let displayedGold = null, goldTarget = null, goldFrame = 0;
+function showGold(value) {
+  if (value === goldTarget && motionEnabled()) return;
+  goldTarget = value;
+  cancelAnimationFrame(goldFrame);
+  const label = document.getElementById("gold-value");
+  const write = number => { label.textContent = `${Math.round(number).toLocaleString()} G`; };
+  if (displayedGold === null || !motionEnabled() || value < displayedGold) {
+    displayedGold = value;
+    write(value);
+    return;
+  }
+  const from = displayedGold, start = performance.now();
+  const tick = now => {
+    const t = motionEnabled() ? Math.min(1, (now - start) / 280) : 1;
+    displayedGold = from + (value - from) * (1 - (1 - t) ** 3);
+    write(displayedGold);
+    if (t < 1) goldFrame = requestAnimationFrame(tick);
+  };
+  goldFrame = requestAnimationFrame(tick);
+}
 function refresh() {
   const s = store.getState();
-  document.getElementById("gold-value").textContent =
-    `${s.currency.gold.toLocaleString()} G`;
+  document.documentElement.classList.toggle("motion-off", s.settings.motion === false);
+  showGold(s.currency.gold);
   document.getElementById("level-value").textContent =
     `Lv.${s.character.level} · ${s.character.exp}/${s.character.level * 50} XP`;
   const notice = s.lootNotice;
   if (notice && notice.id !== lastItemId && s.settings.notifications)
     showToast(notice.message);
   lastItemId = notice?.id;
-  if (s.lastResult && s.lastResult !== shownResult) {
+  if (s.lastResult && s.lastResult !== shownResult &&
+      !document.getElementById("app").classList.contains("result-pending")) {
     shownResult = s.lastResult;
     const r = s.lastResult;
     document.getElementById("result-title").textContent =

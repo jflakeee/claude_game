@@ -9,6 +9,7 @@ export function createStore() {
     settings: {
       autoEquipMinGrade: "normal",
       sound: true,
+      motion: true,
       notifications: true,
       autoProgress: true,
     },

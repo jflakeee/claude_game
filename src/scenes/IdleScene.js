@@ -1,4 +1,5 @@
 import Phaser from "phaser";
+import { motionEnabled, flashSprite, deathEcho, rewardFlight } from "../systems/presentation.js";
 import { store } from "../state/globalStore.js";
 import {
   advanceIdleProgress,
@@ -104,10 +105,10 @@ export class IdleScene extends Phaser.Scene {
           (fraction < 0.5 ? fraction * 2 : (1 - fraction) * 2);
     this.character.x = x;
     this.character.y =
-      this.scale.height * 0.7 + (active ? Math.sin(time / 120) * 2 : 0);
+      this.scale.height * 0.7 + (active && motionEnabled() ? Math.sin(time / 120) * 2 : 0);
     this.character.setFlipX(direction < 0);
     this.shadow.x = x;
-    this.room.x = -((this.progress.distancePx * 0.3) % 112);
+    this.room.x = motionEnabled() ? -((this.progress.distancePx * 0.3) % 112) : 0;
     this.hpTrack.setPosition(x, this.character.y + 24);
     this.hpFill.setPosition(x, this.character.y + 24);
     this.hpFill.width = (38 * this.idleHp) / 100;
@@ -116,7 +117,7 @@ export class IdleScene extends Phaser.Scene {
       25,
       this.scale.width - 25,
     );
-    this.enemy.y = this.scale.height * 0.7 + Math.sin(time / 180) * 3;
+    this.enemy.y = this.scale.height * 0.7 + (motionEnabled() ? Math.sin(time / 180) * 3 : 0);
     this.enemy.setFlipX(direction > 0);
     this.effects.clear();
     if (stats.aura) {
@@ -198,17 +199,20 @@ export class IdleScene extends Phaser.Scene {
           critical ? "#ffa5b0" : "#efd59a",
         );
       }
+      flashSprite(this, this.enemy);
       const slash = this.add
         .arc(this.enemy.x, this.enemy.y, 24, -60, 60, false, 0xffdc9a, 0.65)
         .setDepth(5);
       this.tweens.add({
         targets: slash,
         alpha: 0,
-        scale: 1.5,
+        scale: motionEnabled() ? 1.5 : 1,
         duration: 230,
         onComplete: () => slash.destroy(),
       });
       if (this.idleEnemy.hp <= 0) {
+        deathEcho(this, this.enemy);
+        rewardFlight(this, this.enemy.x, this.enemy.y, "#gold-value");
         const result = resolveIdleKill({
           character: state.character,
           currency: state.currency,

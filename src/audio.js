@@ -1,5 +1,7 @@
 import { store } from "./state/globalStore.js";
 let context;
+const lastSound = new Map();
+let voices = 0;
 export function unlockAudio() {
   try {
     const AudioContext = window.AudioContext || window.webkitAudioContext;
@@ -17,6 +19,9 @@ export function sound(kind = "click") {
     !store.getState().settings.sound
   )
     return;
+  const now = context.currentTime;
+  if (voices >= 6 || now - (lastSound.get(kind) ?? -Infinity) < 0.06) return;
+  lastSound.set(kind, now);
   const oscillator = context.createOscillator(),
     gain = context.createGain();
   oscillator.type = "triangle";
@@ -33,5 +38,11 @@ export function sound(kind = "click") {
   oscillator.connect(gain);
   gain.connect(context.destination);
   oscillator.start();
+  voices++;
+  oscillator.onended = () => {
+    voices--;
+    oscillator.disconnect();
+    gain.disconnect();
+  };
   oscillator.stop(context.currentTime + 0.13);
 }

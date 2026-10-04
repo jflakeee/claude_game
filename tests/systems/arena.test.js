@@ -32,6 +32,9 @@ describe("실제 생존 전투", () => {
     for (let i = 0; i < 30; i++)
       events.push(...stepArena(a, 50, stats, {}, () => 0.9));
     expect(events.some((e) => e.type === "kill")).toBe(true);
+    expect(events.find((e) => e.type === "hit").targetId).toBe(1);
+    expect(events.find((e) => e.type === "kill").targetId).toBe(1);
+    expect(Math.hypot(...Object.values(events.find((e) => e.type === "hit").direction))).toBeCloseTo(1);
     expect(a.enemies).toHaveLength(0);
   });
   it("키보드나 드래그 입력으로 경계 밖을 벗어나지 않는다", () => {

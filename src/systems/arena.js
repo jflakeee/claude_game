@@ -123,6 +123,8 @@ export function stepArena(
         p.hp = Math.min(100, p.hp + actual * (stats.lifeSteal || 0));
         events.push({
           type: "hit",
+          targetId: enemy.id,
+          direction: { x: bolt.vx / 320, y: bolt.vy / 320 },
           x: enemy.x,
           y: enemy.y,
           damage,
@@ -134,7 +136,7 @@ export function stepArena(
   for (const enemy of arena.enemies) {
     if (enemy.hp <= 0) {
       if (enemy.boss) arena.bossDefeated = true;
-      events.push({ type: "kill", x: enemy.x, y: enemy.y, boss: !!enemy.boss });
+      events.push({ type: "kill", targetId: enemy.id, x: enemy.x, y: enemy.y, boss: !!enemy.boss });
       continue;
     }
     const distance = Math.hypot(p.x - enemy.x, p.y - enemy.y) || 1;

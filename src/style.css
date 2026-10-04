@@ -619,6 +619,8 @@ canvas {
   color: #cee0d6;
 }
 .health-track {
+  position: relative;
+  overflow: hidden;
   background: #17242b;
   border: 1px solid #4a6562;
   padding: 2px;
@@ -626,10 +628,48 @@ canvas {
   border-radius: 4px;
 }
 .health-track > div {
-  height: 100%;
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  max-width: calc(100% - 4px);
+  height: calc(100% - 4px);
   background: linear-gradient(90deg, #74bda1, #b5dd9c);
   border-radius: 2px;
-  transition: width 0.1s;
+}
+.health-track > #combat-health-trail {
+  background: #e7b96c;
+}
+.reward-flight {
+  position: fixed;
+  z-index: 50;
+  pointer-events: none;
+  color: #ffe2a0;
+  font-size: 18px;
+  text-shadow: 0 0 8px #d99446;
+}
+button {
+  transition: background-color 120ms, transform 90ms;
+}
+button:active:not(:disabled) {
+  transform: scale(0.96);
+}
+dialog[open] {
+  animation: modal-enter 160ms ease-out;
+}
+@keyframes modal-enter {
+  from { opacity: 0; translate: 0 5px; }
+  to { opacity: 1; translate: 0 0; }
+}
+.motion-off *, .motion-off *::before, .motion-off *::after {
+  animation: none !important;
+  transition: none !important;
+}
+.motion-off button:active:not(:disabled) {
+  transform: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  dialog[open] { animation: none; }
+  button:active:not(:disabled) { transform: none; }
 }
 .combat-help {
   position: absolute;
