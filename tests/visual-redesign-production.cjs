@@ -1,0 +1,46 @@
+const { chromium } = require('C:/Users/a/node_modules/playwright-core');
+const fs = require('node:fs'), assert = require('node:assert/strict');
+const out = 'docs/qa/2026-10-06/deployment';
+fs.mkdirSync(out, { recursive: true });
+(async () => {
+  const browser = await chromium.launch({ headless: true });
+  try {
+    const page = await browser.newPage({ viewport: { width: 1280, height: 900 }, reducedMotion: 'no-preference' });
+    const errors = [];
+    page.on('pageerror', e => errors.push(e.message));
+    const response = await page.goto('https://fungood.co.kr/claude_game/?release=f860110', { waitUntil: 'networkidle' });
+    assert.equal(response.status(), 200);
+    const bundle = await page.locator('script[type="module"]').getAttribute('src');
+    assert.match(bundle, /index-Dy2G0TBs/);
+    assert.equal(await page.evaluate(() => typeof window.__claudeGame), 'undefined');
+    await page.getByRole('button', { name: /생존 전투/ }).waitFor();
+    assert.equal(await page.locator('#app').evaluate(el => el.clientWidth), 1180);
+    await page.screenshot({ path: out + '/01-desktop.png' });
+    await page.getByRole('button', { name: /보스 아레나/ }).click();
+    await page.waitForSelector('.boss-panel');
+    await page.waitForSelector('.boss-introduction', { state: 'detached' });
+    assert.equal(await page.locator('#app').evaluate(el => el.clientWidth), 520);
+    await page.screenshot({ path: out + '/02-boss.png' });
+    await page.getByRole('button', { name: /나가기/ }).click();
+    await page.getByRole('button', { name: '탐험 계속', exact: true }).click();
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.getByRole('tab', { name: '설정' }).click();
+    await page.getByRole('switch', { name: '화면 움직임', exact: true }).click();
+    await page.reload({ waitUntil: 'networkidle' });
+    await page.getByRole('tab', { name: '설정' }).click();
+    assert.equal(await page.getByRole('switch', { name: '화면 움직임', exact: true }).getAttribute('aria-checked'), 'false');
+    await page.getByRole('button', { name: /생존 전투/ }).click();
+    await page.waitForSelector('.combat-hud');
+    await page.screenshot({ path: out + '/03-mobile.png' });
+    await page.getByRole('button', { name: /나가기/ }).click();
+    await page.getByRole('button', { name: '탐험 계속', exact: true }).click();
+    await page.goto('https://www.fungood.co.kr/game_portal/#/play/claude-game', { waitUntil: 'networkidle' });
+    const frame = page.frameLocator('iframe');
+    await frame.getByRole('button', { name: /생존 전투/ }).waitFor();
+    assert.match(await frame.locator('script[type="module"]').getAttribute('src'), /index-Dy2G0TBs/);
+    await page.screenshot({ path: out + '/04-portal.png' });
+    assert.deepEqual(errors, []);
+    fs.writeFileSync(out + '/results.json', JSON.stringify({ source: 'f860110', gamePages: '12d7251', domainPages: '062bcfe', bundle, status: response.status(), errors, checks: ['desktop preparation 1180px', 'boss combat 520px and return', 'mobile survival and return', 'motion preference persists', 'portal loads release', 'production debug hook absent'] }, null, 2));
+    console.log('Production verification passed', bundle);
+  } finally { await browser.close(); }
+})().catch(e => { console.error(e); process.exitCode = 1; });
