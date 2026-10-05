@@ -11,7 +11,7 @@ import {
 import { computeCombatStats } from "../systems/effectiveStats.js";
 import { rollItem } from "../systems/items.js";
 import { saveState } from "../state/persistence.js";
-import { prepareArt, drawRoom, floatingText } from "./art.js";
+import { prepareArt, drawRoom, floatingText, poseActor } from "./art.js";
 import { sound } from "../audio.js";
 import { arenaBounds, bossLayout } from "../systems/arenaLayout.js";
 
@@ -22,6 +22,9 @@ export class CombatScene extends Phaser.Scene {
   create(data = {}) {
     this.ending = false;
     this.completeExit = null;
+    this.introUntil = 0;
+    this.strikeUntil = 0;
+    this.hurtUntil = 0;
     this.hitEffects = new Map();
     this.healthTrail = { hp: 100, trail: 100, hold: 0 };
     prepareArt(this);
@@ -91,6 +94,15 @@ export class CombatScene extends Phaser.Scene {
       this.drawSeal();
     };
     this.scale.on("resize", this.resizeHandler);
+    if (this.encounter === 'boss' && motionEnabled()) {
+      this.introUntil = this.game.loop.time + 900;
+      this.intro = document.createElement('div');
+      this.intro.className = 'boss-introduction';
+      this.intro.innerHTML = '<span class="eyebrow">회랑의 수호자</span><strong>다가오는 위협을 살피세요</strong><button class="secondary">바로 시작 →</button>';
+      this.hud.append(this.intro);
+      this.intro.querySelector('button').addEventListener('click', () => { this.introUntil = 0; });
+      this.cameras.main.fadeIn(450, 13, 23, 30);
+    }
     this.events.once("shutdown", () => {
       this.scale.off("resize", this.resizeHandler);
       this.hud.remove();
@@ -100,6 +112,16 @@ export class CombatScene extends Phaser.Scene {
   }
   update(time, delta) {
     if (this.ending || document.hidden) return;
+    if (time < this.introUntil && motionEnabled()) {
+      this.syncSprites(this.arena.enemies, this.enemySprites, e => this.add.sprite(e.x, e.y, e.boss ? 'guardian' : ['slime', 'bat', 'skull'][e.kind]).setScale(e.boss ? 4.5 : 2.6).setDepth(3));
+      this.drawEffects(time);
+      return;
+    }
+    if (this.intro) {
+      this.intro.remove(); this.intro = null;
+      this.cameras.main.resetFX();
+      this.drag = null;
+    }
     const dt = Math.min(delta, 50),
       p = this.input.activePointer;
     let x = 0,
@@ -122,7 +144,10 @@ export class CombatScene extends Phaser.Scene {
         12,
       );
     }
-    for (const event of stepArena(this.arena, dt, this.stats, { x, y })) {
+    const attackBefore = this.arena.attack;
+    const events = stepArena(this.arena, dt, this.stats, { x, y });
+    if (this.arena.attack > attackBefore) this.strikeUntil = time + 130;
+    for (const event of events) {
       if (event.type === "kill") {
         this.session.kills++;
         addReward(this.session, {
@@ -144,6 +169,7 @@ export class CombatScene extends Phaser.Scene {
           "#ffe6c1",
         );
       } else if (event.type === "hurt") {
+        this.hurtUntil = time + 160;
         sound("hurt");
         if (motionEnabled()) this.cameras.main.shake(80, 0.003);
       } else if (event.type === "warning") {
@@ -157,6 +183,8 @@ export class CombatScene extends Phaser.Scene {
       player.y + (motionEnabled() && (x || y) ? Math.sin(time / 100) * 2 : 0),
     );
     if (x) this.player.setFlipX(x < 0);
+    poseActor(this.player, 'hero', time, { moving: !!(x || y), strike: time < this.strikeUntil,
+      hurt: time < this.hurtUntil, ready: this.arena.enemies.length > 0 && this.arena.attack > 0 && this.arena.attack < 0.1 });
     this.player.setAlpha(
       this.arena.invulnerable > 0 ? 0.65 : 1,
     );
@@ -174,6 +202,10 @@ export class CombatScene extends Phaser.Scene {
     this.syncSprites(this.arena.bolts, this.boltSprites, (b) =>
       this.add.star(b.x, b.y, 4, 3, 8, 0xffdc93).setDepth(5),
     );
+    for (const e of this.arena.enemies) {
+      if (!e.boss && e.kind === 0) poseActor(this.enemySprites.get(e.id), 'slime', time,
+        { moving: true, hurt: this.hitEffects.has(e.id) });
+    }
     for (const [id, fx] of this.hitEffects) {
       const sprite = this.enemySprites.get(id);
       const model = this.arena.enemies.find(e => e.id === id);
@@ -254,6 +286,14 @@ export class CombatScene extends Phaser.Scene {
         g.fillCircle(e.x, e.y, 100);
         g.lineStyle(1, 0xb86fda, 0.5);
         g.strokeCircle(e.x, e.y, 100);
+        // Four inward marks distinguish a hostile field from a player aura.
+        for (let i = 0; i < 4; i++) {
+          const angle = i * Math.PI / 2;
+          const cx = e.x + Math.cos(angle) * 94, cy = e.y + Math.sin(angle) * 94;
+          g.lineStyle(2, 0xd6a5ed, 0.8);
+          g.lineBetween(cx - Math.cos(angle - 0.55) * 10, cy - Math.sin(angle - 0.55) * 10, cx, cy);
+          g.lineBetween(cx - Math.cos(angle + 0.55) * 10, cy - Math.sin(angle + 0.55) * 10, cx, cy);
+        }
       }
       if (e.curseTimer > 0) {
         g.lineStyle(2, e.curse === "chill" ? 0x8dd9f1 : 0xeb97bb, 0.8);
@@ -265,8 +305,26 @@ export class CombatScene extends Phaser.Scene {
       g.lineStyle(h.type === "charge" ? 10 : 3, color, h.active ? 0.8 : 0.65);
       g.fillStyle(color, h.active ? 0.32 : 0.14);
       if (h.type === "charge") {
+        // Filled corridor visualizes the existing center-distance threshold.
+        g.lineStyle(44, color, h.active ? 0.22 : 0.1);
         g.lineBetween(h.x, h.y, h.tx, h.ty);
-        g.strokeCircle(h.tx, h.ty, 20);
+        g.lineStyle(2, color, 0.85);
+        g.lineBetween(h.x, h.y, h.tx, h.ty);
+        const angle = Math.atan2(h.ty - h.y, h.tx - h.x);
+        for (const t of [0.35, 0.65, 0.9]) {
+          const x = h.x + (h.tx - h.x) * t, y = h.y + (h.ty - h.y) * t;
+          g.lineBetween(x, y, x - Math.cos(angle - 0.6) * 12, y - Math.sin(angle - 0.6) * 12);
+          g.lineBetween(x, y, x - Math.cos(angle + 0.6) * 12, y - Math.sin(angle + 0.6) * 12);
+        }
+        g.strokeCircle(h.tx, h.ty, 22);
+      } else if (h.type === 'nova') {
+        // A burst source, not a filled circular damage area.
+        g.strokeCircle(h.x, h.y, 28);
+        for (let i = 0; i < 10; i++) {
+          const angle = i * Math.PI / 5;
+          g.lineBetween(h.x + Math.cos(angle) * 36, h.y + Math.sin(angle) * 36,
+            h.x + Math.cos(angle) * 60, h.y + Math.sin(angle) * 60);
+        }
       } else {
         g.fillCircle(h.x, h.y, h.type === "nova" ? 60 : h.radius);
         g.strokeCircle(h.x, h.y, h.type === "nova" ? 60 : h.radius);

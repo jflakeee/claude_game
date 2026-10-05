@@ -1,3 +1,17 @@
+.boss-introduction {
+  position: absolute;
+  top: 24%;
+  left: 16px;
+  right: 16px;
+  display: grid;
+  gap: 12px;
+  padding: 22px;
+  text-align: center;
+  background: #101e29ed;
+  border: 1px solid #aa8e69;
+  border-radius: 12px;
+  pointer-events: auto;
+}
 :root {
   color-scheme: dark;
   font-family: Inter, "Segoe UI", "Malgun Gothic", system-ui, sans-serif;
@@ -8,6 +22,61 @@
   --gold: #e8c58e;
   --line: #30434a;
   --coral: #e99a78;
+}
+
+/* Exploration and preparation share a stage; combat keeps its existing width. */
+.expedition-actions {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 16px 22px;
+  background: linear-gradient(0deg, #10232b 84%, #10232b00);
+  border-top: 1px solid #49605a66;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.expedition-actions strong { display: block; font-size: 15px; color: #f0e5cc; }
+.expedition-actions small { display: block; color: #aec0bc; font-size: 11px; margin-top: 4px; }
+.departure-buttons { display: flex; gap: 8px; }
+.departure-buttons button { min-height: 42px; flex: 1; }
+.departure-buttons .boss-gate { position: static; font-size: 12px; }
+.survival-gate span { margin-left: 8px; font-size: 11px; font-weight: 400; }
+.item-row:has(.equipment-comparison) { flex-wrap: wrap; }
+.item-actions { display: flex; flex-direction: column; gap: 6px; flex-shrink: 0; }
+.item-actions button { min-height: 32px; }
+.item-actions [aria-pressed="true"] { border-color: #87c9ad; color: #b7efd6; background: #25433c; }
+.equipment-comparison { flex-basis: 100%; margin: 8px 0 0; padding: 9px 12px; border: 1px solid #3c535d; border-radius: 6px; background: #101f27; }
+.equipment-comparison summary { cursor: pointer; font-size: 12px; color: #e8c58e; }
+.comparison-grid { margin-top: 12px; display: grid; gap: 8px; font-size: 12px; font-variant-numeric: tabular-nums; }
+.comparison-grid > div { display: grid; grid-template-columns: 1fr 1.3fr 0.6fr; gap: 8px; align-items: center; }
+.comparison-grid b { text-align: right; font-size: 12px; }
+.comparison-grid em { text-align: right; font-size: 11px; font-style: normal; }
+.stat-loss, .comparison-warning { color: #ffb5ad; }
+.stat-gain { color: #a8e5c5; }
+.comparison-warning { font-size: 11px; margin: 10px 0; }
+.equipment-comparison > small { display: block; margin-top: 10px; color: #aabfbe; line-height: 1.6; }
+@media (max-height: 700px) {
+  .expedition-actions { padding: 12px 18px; }
+  .expedition-actions > div:first-child { display: none; }
+}
+@media (min-width: 960px) {
+  #app:not(.in-combat) {
+    max-width: 1180px;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 390px;
+    grid-template-rows: 76px minmax(0, 1fr);
+  }
+  #app:not(.in-combat) .game-header { grid-column: 1 / -1; padding: 16px 28px; }
+  #app:not(.in-combat) #game-container { grid-column: 1; grid-row: 2; }
+  #app:not(.in-combat) #bottom-panel { grid-column: 2; grid-row: 2; min-height: 0; border-top: 0; border-left: 1px solid #43574f; }
+  #app:not(.in-combat) #bottom-panel .panel-handle { display: none; }
+  #app:not(.in-combat) #bottom-panel.minimized .tab-bar { display: flex; }
+  #app:not(.in-combat) #bottom-panel.minimized .tab-content { display: block; }
+  #app:not(.in-combat) #toast { left: 24px; right: 414px; bottom: 150px; }
+  .expedition-actions { padding: 22px 28px; }
+  .expedition-actions strong { font-size: 19px; }
 }
 
 .subnav {

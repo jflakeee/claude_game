@@ -9,6 +9,7 @@ export function shouldAutoEquip(droppedItem, currentEquipped, minGrade) {
   if (gradeRank(droppedItem.grade) < gradeRank(minGrade)) return false;
   const current = currentEquipped.find((i) => i.slot === droppedItem.slot);
   if (!current) return true;
+  if (current.autoEquipLocked) return false;
   return statTotal(droppedItem) > statTotal(current);
 }
 

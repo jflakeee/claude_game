@@ -18,14 +18,16 @@ describe('renderTab', () => {
   it('equipment 탭: 장착 아이템 이름과 등급을 나열한다', () => {
     const state = baseState();
     state.character.equippedItems = [{ name: '녹슨 검', grade: 'normal' }];
-    expect(renderTab('equipment', state)).toContain('녹슨 검 (normal)');
+    expect(renderTab('equipment', state)).toContain('녹슨 검');
+    expect(renderTab('equipment', state)).toContain('일반');
   });
 
   it('equipment 탭: 스크랩북에 아이템이 있으면 복원 버튼과 함께 보여준다', () => {
     const state = baseState();
     state.scrapbook = [{ id: 'x1', name: '교체된 검', grade: 'rare', statBonus: {}, slot: 'weapon' }];
     const html = renderTab('equipment', state);
-    expect(html).toContain('교체된 검 (rare)');
+    expect(html).toContain('교체된 검');
+    expect(html).toContain('희귀');
     expect(html).toContain('data-action="restore-scrapbook-item"');
     expect(html).toContain('data-item-id="x1"');
   });

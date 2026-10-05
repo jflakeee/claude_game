@@ -20,6 +20,7 @@ import {
   cubePreview,
 } from "./ExpansionPanel.js";
 import { RUNES, RUNEWORDS } from "../data/expansion.js";
+import { equipmentPreview } from "../systems/equipmentPreview.js";
 
 const TABS = {
   equipment: "장비",
@@ -38,7 +39,20 @@ const esc = (value) =>
   );
 const gradeLabel = (grade) => GRADE_LABEL[grade] || "일반";
 function gradeControl(state) {
-  return `<div class="setting-row"><div><b>자동 장착 최소 등급</b><small>${gradeLabel(state.settings.autoEquipMinGrade)} 이상 · 더 좋은 장비로 교체</small></div><button data-action="cycle-auto-equip-grade" aria-label="자동 장착 등급 변경" class="grade ${esc(state.settings.autoEquipMinGrade)}">${gradeLabel(state.settings.autoEquipMinGrade)} ↻</button></div>`;
+  return `<div class="setting-row"><div><b>자동 장착 최소 등급</b><small>${gradeLabel(state.settings.autoEquipMinGrade)} 이상 · 기본 능력치 합계로 비교<br>유지한 장비는 자동 교체하지 않습니다.</small></div><button data-action="cycle-auto-equip-grade" aria-label="자동 장착 등급 변경" class="grade ${esc(state.settings.autoEquipMinGrade)}">${gradeLabel(state.settings.autoEquipMinGrade)} ↻</button></div>`;
+}
+function comparison(item, character) {
+  const preview = equipmentPreview(character, item);
+  if (!preview) return '';
+  const rows = [['atk', '공격', 1], ['def', '방어', 1], ['crit', '치명타', 100], ['regen', '초당 재생', 1]];
+  for (const row of [['lifeSteal', '흡혈', 100], ['slow', '둔화', 100]]) {
+    if (preview.before[row[0]] || preview.after[row[0]]) rows.push(row);
+  }
+  const number = value => Number(value.toFixed(1));
+  return `<details class="equipment-comparison" data-comparison-id="${esc(item.id)}"><summary>장착 전후 비교</summary><div class="comparison-grid">${rows.map(([key, label, scale]) => {
+    const a = number(preview.before[key] * scale), b = number(preview.after[key] * scale), delta = number(b - a);
+    return `<div><span>${label}</span><b>${a}${scale === 100 ? '%' : ''} → ${b}${scale === 100 ? '%' : ''}</b><em class="${delta < 0 ? 'stat-loss' : delta > 0 ? 'stat-gain' : ''}">${delta > 0 ? '+' : ''}${delta}${scale === 100 ? '%p' : ''}</em></div>`;
+  }).join('')}</div>${preview.lost.map(text => `<p class="comparison-warning">△ ${esc(text)}</p>`).join('')}<small>현재 스킬·세트 효과 포함 · 전투 상황에 따라 효율이 달라집니다.</small></details>`;
 }
 function itemRow(
   item,
@@ -46,10 +60,11 @@ function itemRow(
   label,
   status = "장착 중",
   canIdentify = action === "equip-item",
+  character = null,
 ) {
   if (item.identified === false)
     return `<li class="item-row"><span class="item-icon epic">?</span><div class="item-info"><b>미감정 ${esc(item.name)}</b><small>옵션 비공개 · 장착 전 감정 필요</small></div>${canIdentify ? `<button data-action="identify" data-item-id="${esc(item.id)}">감정 ${(GRADE_ORDER.indexOf(item.grade) + 1) * 10}G</button>` : `<span class="equipped-label">${esc(status)}</span>`}</li>`;
-  return `<li class="item-row"><span class="item-icon grade ${esc(item.grade)}">⚔</span><div class="item-info"><b>${esc(item.name)} (${esc(item.grade)})</b><small><span class="grade ${esc(item.grade)}">${gradeLabel(item.grade)}</span> · ${esc({ weapon: "무기", armor: "갑옷", charm: "부적" }[item.slot] || "")} · 공격 +${Number(item.statBonus?.atk) || 0} · 방어 +${Number(item.statBonus?.def) || 0}</small><small>${item.setId ? "별빛 세트 · " : item.uniqueEffect ? "별의 심장: 치명타 +10% · " : ""}${item.affix ? esc(item.affix.name) + " · " : ""}${(item.sockets || []).map((r) => RUNES[r]?.glyph || "?").join(" ")}${item.runeword ? " · " + esc(RUNEWORDS.find((w) => w.id === item.runeword)?.name) : ""}</small></div>${action ? `<button data-action="${action}" data-item-id="${esc(item.id)}">${label}</button>` : `<span class="equipped-label">${esc(status)}</span>`}</li>`;
+  return `<li class="item-row" data-row-id="${esc(item.id)}"><span class="item-icon grade ${esc(item.grade)}">${item.slot === 'armor' ? '◇' : item.slot === 'charm' ? '✧' : '⚔'}</span><div class="item-info"><b>${esc(item.name)}</b><small><span class="grade ${esc(item.grade)}">${gradeLabel(item.grade)}</span> · ${esc({ weapon: "무기", armor: "갑옷", charm: "부적" }[item.slot] || "")} · 공격 +${Number(item.statBonus?.atk) || 0} · 방어 +${Number(item.statBonus?.def) || 0}</small><small>${item.setId ? "별빛 세트 · " : item.uniqueEffect ? "별의 심장: 치명타 +10% · " : ""}${item.affix ? esc(item.affix.name) + " · " : ""}${(item.sockets || []).map((r) => RUNES[r]?.glyph || "?").join(" ")}${item.runeword ? " · " + esc(RUNEWORDS.find((w) => w.id === item.runeword)?.name) : ""}</small></div><div class="item-actions">${action === 'unequip-item' ? `<button data-action="lock-equipment" data-item-id="${esc(item.id)}" aria-pressed="${!!item.autoEquipLocked}">${item.autoEquipLocked ? '유지 중' : '장비 유지'}</button>` : ''}${action ? `<button data-action="${action}" data-item-id="${esc(item.id)}">${label}</button>` : `<span class="equipped-label">${esc(status)}</span>`}</div>${character && action === 'equip-item' ? comparison(item, character) : ''}</li>`;
 }
 
 export function renderTab(tab, state) {
@@ -58,7 +73,7 @@ export function renderTab(tab, state) {
   if (tab === "shop" && ["merchant", "auction"].includes(state.view))
     return sectionNav(tab, state.view) + renderMarket(state, state.view);
   if (tab === "equipment")
-    return `${sectionNav("equipment", "gear")}${gradeControl(state)}<div class="section-title">장착 장비 <span>WEAPON</span></div><ul class="item-list">${state.character.equippedItems.length ? state.character.equippedItems.map((i) => itemRow(i, "unequip-item", "가방으로")).join("") : '<li class="empty-state">장착한 장비 없음 · 탐험하며 장비를 찾아보세요.</li>'}</ul><div class="section-title">인벤토리 <span>${(state.inventory || []).length}/${INVENTORY_CAPACITY}</span></div><ul class="item-list">${(state.inventory || []).map((i) => itemRow(i, "equip-item", "장착")).join("") || '<li class="empty-state">새로운 장비가 이곳에 모입니다.</li>'}</ul><p class="hint">가방이 가득 차면 새 장비는 자동으로 골드가 됩니다.</p><div class="section-title">스크랩북 <span>${(state.scrapbook || []).length}개</span></div><ul class="item-list">${(state.scrapbook || []).map((i) => itemRow(i, "restore-scrapbook-item", `${itemGoldValue(i)}G 복원`)).join("") || '<li class="empty-state">스크랩북이 비어 있습니다.</li>'}</ul>`;
+    return `${sectionNav("equipment", "gear")}${gradeControl(state)}<div class="section-title">장착 장비 <span>LOADOUT</span></div><ul class="item-list">${state.character.equippedItems.length ? state.character.equippedItems.map((i) => itemRow(i, "unequip-item", "가방으로")).join("") : '<li class="empty-state">장착한 장비 없음 · 탐험하며 장비를 찾아보세요.</li>'}</ul><div class="section-title">인벤토리 <span>${(state.inventory || []).length}/${INVENTORY_CAPACITY}</span></div><ul class="item-list">${(state.inventory || []).map((i) => itemRow(i, "equip-item", "장착", undefined, true, state.character)).join("") || '<li class="empty-state">새로운 장비가 이곳에 모입니다.</li>'}</ul><p class="hint">가방이 가득 차면 새 장비는 자동으로 골드가 됩니다.</p><div class="section-title">스크랩북 <span>${(state.scrapbook || []).length}개</span></div><ul class="item-list">${(state.scrapbook || []).map((i) => itemRow(i, "restore-scrapbook-item", `${itemGoldValue(i)}G 복원`)).join("") || '<li class="empty-state">스크랩북이 비어 있습니다.</li>'}</ul>`;
   if (tab === "skills") return renderSkillTree(state);
   if (tab === "settings")
     return `<div class="section-title">탐험 설정 <span>PREFERENCES</span></div>${gradeControl(state)}${[
@@ -149,6 +164,10 @@ export function mountBottomPanel(container) {
       if (html !== lastHtml) {
         lastHtml = html;
         const scroll = content.scrollTop;
+        const focused = document.activeElement;
+        const focusData = content.contains(focused) ? { ...focused.dataset } : null;
+        const focusedComparison = focused?.tagName === 'SUMMARY' ? focused.parentElement.dataset.comparisonId : null;
+        const openComparisons = new Set([...content.querySelectorAll('details[open][data-comparison-id]')].map(el => el.dataset.comparisonId));
         const fields = Object.fromEntries(
           [...content.querySelectorAll("[data-field]")].map((el) => [
             el.dataset.field,
@@ -156,6 +175,15 @@ export function mountBottomPanel(container) {
           ]),
         );
         content.innerHTML = html;
+        content.querySelectorAll('[data-comparison-id]').forEach(el => { el.open = openComparisons.has(el.dataset.comparisonId); });
+        if (focusedComparison) [...content.querySelectorAll('[data-comparison-id]')]
+          .find(el => el.dataset.comparisonId === focusedComparison)?.querySelector('summary')?.focus({ preventScroll: true });
+        if (focusData?.action) {
+          const replacement = [...content.querySelectorAll('[data-action]')].find(el =>
+            el.dataset.action === focusData.action && el.dataset.itemId === focusData.itemId && el.dataset.setting === focusData.setting);
+          if (replacement) replacement.focus({ preventScroll: true });
+          else { content.tabIndex = -1; content.focus({ preventScroll: true }); }
+        }
         content.querySelectorAll("[data-field]").forEach((el) => {
           if (
             fields[el.dataset.field] !== undefined &&
@@ -218,6 +246,10 @@ export function mountBottomPanel(container) {
     if (action === "learn-skill") {
       if (learnOrLevelSkill(state.character, button.dataset.skillId))
         message = "스킬을 강화했습니다.";
+    }
+    if (action === "lock-equipment") {
+      const item = state.character.equippedItems.find(i => i.id === button.dataset.itemId);
+      if (item) { item.autoEquipLocked = !item.autoEquipLocked; message = item.autoEquipLocked ? '이 장비는 자동 교체하지 않습니다. 수동 변경은 가능합니다.' : '자동 교체를 다시 허용합니다.'; }
     }
     if (action === "equip-item") {
       if (equipInventoryItem(state, button.dataset.itemId))

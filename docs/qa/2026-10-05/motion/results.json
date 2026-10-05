@@ -1,0 +1,15 @@
+{
+  "passed": true,
+  "errors": [],
+  "frames": [
+    "hero-step-b",
+    "hero-step-a"
+  ],
+  "checks": [
+    "intro freezes timer",
+    "skip resumes combat",
+    "movement poses",
+    "reduced motion static pose",
+    "reduced motion skips intro"
+  ]
+}

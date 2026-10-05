@@ -86,7 +86,16 @@ const patterns = {
   ],
 };
 export function prepareArt(scene) {
-  for (const [name, pixels] of Object.entries(patterns)) {
+  const poses = { ...patterns };
+  const hero = (rows) => patterns.hero.map((row, i) => rows[i] ?? row);
+  poses['hero-step-a'] = hero({ 12: '....bbb..bb.....', 13: '...bbb....bb....' });
+  poses['hero-step-b'] = hero({ 12: '.....bb..bbb....', 13: '....bb....bbb...' });
+  poses['hero-ready'] = hero({ 10: '..oo.oooooo.oo..', 11: '...oooo..oooo...', 12: '....bbb..bbb...' });
+  poses['hero-strike'] = hero({ 10: '..oo.oooooooooww', 11: '..o..oo..oo...ww', 12: '....bbb...bb....', 13: '...bbb.....bbb..' });
+  poses['hero-hurt'] = hero({ 5: '..oaakaaakaao...', 6: '..oaaakkaaaao...', 10: '..oooooooooooo..', 11: '.....oo..oo.....' });
+  poses['slime-step'] = patterns.slime.map((row, i) => i === 2 ? '................' : i === 8 ? '..dddddddddddd..' : i === 9 ? '.dddd.dddd.dddd.' : row);
+  poses['slime-hurt'] = patterns.slime.map((row, i) => i === 5 ? '..gggkkggkkggg..' : i === 7 ? '..dggkkkkggggd..' : row);
+  for (const [name, pixels] of Object.entries(poses)) {
     if (scene.textures.exists(name)) continue;
     const g = scene.make.graphics({ x: 0, y: 0 }, false);
     pixels.forEach((line, y) =>
@@ -101,6 +110,16 @@ export function prepareArt(scene) {
     g.destroy();
   }
 }
+
+// Texture changes only: world positions and collision bounds remain model-owned.
+export function poseActor(sprite, kind, time, { moving = false, ready = false, strike = false, hurt = false } = {}) {
+  let suffix = '';
+  if (motionEnabled()) {
+    if (kind === 'hero') suffix = hurt ? '-hurt' : strike ? '-strike' : ready ? '-ready' : moving ? (Math.floor(time / 130) % 2 ? '-step-a' : '-step-b') : '';
+    if (kind === 'slime') suffix = hurt ? '-hurt' : moving && Math.floor(time / 180) % 2 ? '-step' : '';
+  }
+  sprite.setTexture(kind + suffix);
+}
 export function drawRoom(scene, width, height, combat = false) {
   const g = scene.add.graphics().setDepth(-10);
   g.fillStyle(0x111c25);
@@ -110,13 +129,32 @@ export function drawRoom(scene, width, height, combat = false) {
     for (let col = -1; col < width / 48 + 1; col++) {
       const x = col * 48 + (row % 2) * 24,
         y = row * 22;
-      g.fillStyle((row + col) % 3 === 0 ? 0x203039 : 0x1a2932);
+      g.fillStyle((row + col) % 3 === 0 ? 0x1c2d35 : 0x192930);
       g.fillRect(x + 1, y + 1, 46, 20);
-      g.fillStyle(0x2a3b42);
+      g.fillStyle(0x24353c);
       g.fillRect(x + 2, y + 1, 44, 1);
     }
+  if (!combat) {
+    // Large architectural shapes replace competing small detail in the distance.
+    const archHeight = Math.min(190, horizon - 104);
+    if (archHeight > 42) for (let x = 56; x < width; x += 224) {
+      const y = horizon - archHeight - 18;
+      g.fillStyle(0x33464b);
+      g.fillRoundedRect(x, y, 102, archHeight, { tl: 50, tr: 50, bl: 0, br: 0 });
+      g.fillStyle(0x0d1d28);
+      g.fillRoundedRect(x + 7, y + 8, 88, archHeight - 8, { tl: 44, tr: 44, bl: 0, br: 0 });
+      g.fillStyle(0x7aabae, 0.13);
+      g.fillTriangle(x + 12, horizon - 18, x + 90, horizon - 18, x + 130, horizon + 90);
+      g.fillStyle(0x9ac2c5, 0.7);
+      g.fillRect(x + 30, y + 35, 2, 2);
+      g.fillRect(x + 70, y + 57, 2, 2);
+      g.fillStyle(0x30454b);
+      g.fillRect(x + 49, y + 12, 4, archHeight - 12);
+      g.fillRect(x + 8, y + archHeight * 0.58, 85, 4);
+    }
+  }
   for (let x = 28; x < width; x += 112) {
-    if (!combat) {
+    if (!combat && horizon < 220) {
       g.fillStyle(0x10191f);
       g.fillRect(x + 4, horizon - 111, 55, 102);
       g.fillStyle(0x314148);
@@ -142,10 +180,11 @@ export function drawRoom(scene, width, height, combat = false) {
   for (let y = horizon; y < height; y += 32)
     for (let x = -16; x < width; x += 48) {
       g.fillStyle(
-        (Math.floor(y / 32) + Math.floor(x / 48)) % 3 ? 0x2a3b3f : 0x304146,
+        combat ? ((Math.floor(y / 32) + Math.floor(x / 48)) % 3 ? 0x26383e : 0x293b40)
+          : ((Math.floor(y / 32) + Math.floor(x / 48)) % 3 ? 0x2a3b3f : 0x304146),
       );
       g.fillRect(x + (Math.floor(y / 32) % 2) * 24 + 1, y + 1, 46, 30);
-      g.lineStyle(1, 0x1a2b30);
+      g.lineStyle(1, combat ? 0x22343a : 0x1a2b30);
       g.strokeRect(x + (Math.floor(y / 32) % 2) * 24, y, 48, 32);
     }
   g.fillStyle(0x131f28);
@@ -153,7 +192,7 @@ export function drawRoom(scene, width, height, combat = false) {
   for (let i = 0; i < 30; i++) {
     const x = (i * 83 + 39) % width,
       y = horizon + ((i * 53 + 20) % Math.max(1, height - horizon));
-    g.fillStyle(i % 3 ? 0x45604a : 0x66755b, 0.65);
+    g.fillStyle(i % 3 ? 0x45604a : 0x66755b, combat ? 0.22 : 0.65);
     g.fillRect(x, y, 3, 5);
     g.fillRect(x + 3, y + 2, 4, 2);
   }

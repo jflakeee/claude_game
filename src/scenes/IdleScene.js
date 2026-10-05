@@ -7,7 +7,7 @@ import {
   STAGE_LENGTH_PX,
 } from "../systems/idleCombat.js";
 import { applyLevelUps } from "../systems/leveling.js";
-import { prepareArt, drawRoom, floatingText } from "./art.js";
+import { prepareArt, drawRoom, floatingText, poseActor } from "./art.js";
 import { sound } from "../audio.js";
 import { awardMaterials } from "../systems/crafting.js";
 import { computeCombatStats } from "../systems/effectiveStats.js";
@@ -24,11 +24,16 @@ export class IdleScene extends Phaser.Scene {
     this.tickAccumulator = 0;
     this.idleHp = 100;
     this.idleEnemy = { hp: 10 };
+    this.enemyKind = 'slime';
+    this.strikeUntil = 0;
     this.redraw();
-    this.bossGate = document.createElement("button");
-    this.bossGate.className = "boss-gate";
-    this.bossGate.textContent = "♜ 보스 아레나";
-    document.getElementById("game-container").append(this.bossGate);
+    this.departure = document.createElement('nav');
+    this.departure.className = 'expedition-actions';
+    this.departure.setAttribute('aria-label', '출전 선택');
+    this.departure.innerHTML = '<div><span class="eyebrow">NEXT EXPEDITION</span><strong>장비를 준비하고, 회랑 너머로</strong><small>탐험 보상은 계속 모입니다.</small></div><div class="departure-buttons"><button class="primary survival-gate">생존 전투 <span>3분 도전 →</span></button><button class="boss-gate">♜ 보스 아레나</button></div>';
+    document.getElementById("game-container").append(this.departure);
+    this.bossGate = this.departure.querySelector('.boss-gate');
+    this.departure.querySelector('.survival-gate').addEventListener('click', () => this.scene.start('CombatScene'));
     this.bossGate.addEventListener("click", () =>
       this.scene.start("CombatScene", { encounter: "boss" }),
     );
@@ -36,11 +41,7 @@ export class IdleScene extends Phaser.Scene {
     this.scale.on("resize", this.resizeHandler);
     this.events.once("shutdown", () => {
       this.scale.off("resize", this.resizeHandler);
-      this.bossGate.remove();
-    });
-    this.input.on("pointerup", () => {
-      if (!document.querySelector("dialog[open]"))
-        this.scene.start("CombatScene");
+      this.departure.remove();
     });
   }
   redraw() {
@@ -49,12 +50,12 @@ export class IdleScene extends Phaser.Scene {
     const w = this.scale.width,
       h = this.scale.height;
     this.room = drawRoom(this, w + 112, h);
-    this.shadow = this.add.ellipse(w / 2, h * 0.7 + 17, 40, 12, 0x07151b, 0.5);
+    this.shadow = this.add.ellipse(w / 2, h * 0.62 + 17, 40, 12, 0x07151b, 0.5);
     this.character = this.add
-      .sprite(w / 2, h * 0.7, "hero")
+      .sprite(w / 2, h * 0.62, "hero")
       .setScale(3)
       .setDepth(3);
-    this.enemy = this.add.sprite(w * 0.75, h * 0.7, "slime").setScale(3);
+    this.enemy = this.add.sprite(w * 0.75, h * 0.62, "slime").setScale(3);
     this.effects = this.add.graphics().setDepth(2);
     this.effectsLabel = this.add.text(22, 95, "", {
       fontFamily: "system-ui",
@@ -80,12 +81,12 @@ export class IdleScene extends Phaser.Scene {
       fontSize: "11px",
       color: "#9bb7b1",
     });
-    this.add.rectangle(22, h - 44, w - 44, 3, 0x11222a).setOrigin(0);
+    this.add.rectangle(22, h - 135, w - 44, 3, 0x11222a).setOrigin(0);
     this.progressBar = this.add
-      .rectangle(22, h - 44, 0, 3, 0xdeb780)
+      .rectangle(22, h - 135, 0, 3, 0xdeb780)
       .setOrigin(0);
     this.add
-      .text(w / 2, h - 24, "화면을 탭해 3분 생존 전투 시작  →", {
+      .text(w / 2, h - 150, "장비의 선택이 다음 전투를 바꿉니다", {
         fontFamily: "system-ui",
         fontSize: "12px",
         color: "#e4d4b7",
@@ -105,7 +106,7 @@ export class IdleScene extends Phaser.Scene {
           (fraction < 0.5 ? fraction * 2 : (1 - fraction) * 2);
     this.character.x = x;
     this.character.y =
-      this.scale.height * 0.7 + (active && motionEnabled() ? Math.sin(time / 120) * 2 : 0);
+      this.scale.height * 0.62 + (active && motionEnabled() ? Math.sin(time / 120) * 2 : 0);
     this.character.setFlipX(direction < 0);
     this.shadow.x = x;
     this.room.x = motionEnabled() ? -((this.progress.distancePx * 0.3) % 112) : 0;
@@ -117,8 +118,11 @@ export class IdleScene extends Phaser.Scene {
       25,
       this.scale.width - 25,
     );
-    this.enemy.y = this.scale.height * 0.7 + (motionEnabled() ? Math.sin(time / 180) * 3 : 0);
+    this.enemy.y = this.scale.height * 0.62 + (motionEnabled() ? Math.sin(time / 180) * 3 : 0);
     this.enemy.setFlipX(direction > 0);
+    poseActor(this.character, 'hero', time, { moving: active, strike: time < this.strikeUntil,
+      ready: active && this.tickAccumulator > Math.max(300, 1000 - stats.atk * 5) - 100 });
+    poseActor(this.enemy, this.enemyKind, time, { moving: active, hurt: time < this.strikeUntil });
     this.effects.clear();
     if (stats.aura) {
       this.effects.lineStyle(
@@ -161,7 +165,7 @@ export class IdleScene extends Phaser.Scene {
         ? "● 자동 탐험 중 · 장비와 경험치를 수집합니다"
         : "Ⅱ 탐험 일시 정지 · 설정에서 다시 시작",
     );
-    this.progressBar.width = (this.scale.width - 44) * fraction;
+    this.progressBar.width = (this.scale.width - 135) * fraction;
     if (!active || document.hidden || document.querySelector("dialog[open]"))
       return;
     this.idleHp = Math.min(
@@ -184,6 +188,7 @@ export class IdleScene extends Phaser.Scene {
     );
     const interval = Math.max(300, 1000 - stats.atk * 5);
     if (this.tickAccumulator >= interval) {
+      this.strikeUntil = time + 140;
       this.tickAccumulator -= interval;
       const { damage, critical, healing } = strikeIdleEnemy(
         this.idleEnemy,
@@ -229,9 +234,8 @@ export class IdleScene extends Phaser.Scene {
         this.idleEnemy = {
           hp: 10 + Math.min(20, this.progress.stageIndex * 2),
         };
-        this.enemy.setTexture(
-          ["slime", "bat", "skull"][Math.floor(time / 1000) % 3],
-        );
+        this.enemyKind = ["slime", "bat", "skull"][Math.floor(time / 1000) % 3];
+        this.enemy.setTexture(this.enemyKind);
         floatingText(
           this,
           this.enemy.x,
