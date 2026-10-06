@@ -127,7 +127,8 @@ export function poseActor(sprite, kind, time, { moving = false, ready = false, s
     if (kind === 'skull') suffix = moving && Math.floor(time / 240) % 2 ? '-hover-a' : moving ? '-hover-b' : '';
     if (kind === 'guardian') suffix = strike ? '-strike' : ready ? '-ready' : '';
   }
-  sprite.setTexture(kind + suffix);
+  const texture = kind + suffix;
+  if (sprite.texture.key !== texture) sprite.setTexture(texture);
 }
 export function drawRoom(scene, width, height, combat = false) {
   const g = scene.add.graphics().setDepth(-10);
