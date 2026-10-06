@@ -1,5 +1,6 @@
 import { initEncounter, updateEncounters } from "./encounters.js";
 import { arenaBounds } from "./arenaLayout.js";
+import { HAZARD_GEOMETRY } from "./hazardRules.js";
 // Deterministic combat simulation; rendering and input live in CombatScene.
 export function createArena(width, height, options = {}) {
   const arena = {
@@ -98,7 +99,7 @@ export function stepArena(
         enemy.hp > 0 &&
         bolt.life > 0 &&
         !bolt.hitIds.includes(enemy.id) &&
-        Math.hypot(bolt.x - enemy.x, bolt.y - enemy.y) < (enemy.boss ? 33 : 19)
+        Math.hypot(bolt.x - enemy.x, bolt.y - enemy.y) < (enemy.boss ? HAZARD_GEOMETRY.bossShotTargetRadius : HAZARD_GEOMETRY.enemyShotTargetRadius)
       ) {
         const auraBonus =
           stats.aura === "fury" &&
@@ -160,7 +161,7 @@ export function stepArena(
       : (24 + enemy.kind * 6 + arena.elapsed / 18) * (1 - slowed) * enraged;
     enemy.x += ((p.x - enemy.x) / distance) * speed * dt;
     enemy.y += ((p.y - enemy.y) / distance) * speed * dt;
-    if (distance < 23 && arena.invulnerable <= 0) {
+    if (distance < HAZARD_GEOMETRY.playerContactRadius && arena.invulnerable <= 0) {
       p.hp = Math.max(
         0,
         p.hp -

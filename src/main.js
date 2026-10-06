@@ -8,6 +8,7 @@ import { finishCombat } from "./systems/combatLifecycle.js";
 import { unlockAudio } from "./audio.js";
 import { ensureMarket, tickMarket } from "./systems/market.js";
 import { motionEnabled } from "./systems/presentation.js";
+import { equipmentPreview } from "./systems/equipmentPreview.js";
 
 store.setState(hydrateState(loadState(), store.getState()));
 tickMarket(store.getState());
@@ -35,7 +36,7 @@ document
   .querySelector("#app")
   .insertAdjacentHTML(
     "beforeend",
-    '<div id="toast" role="status" aria-live="polite"></div><dialog id="result-dialog" aria-labelledby="result-title"><span class="result-icon">✧</span><span class="eyebrow">EXPEDITION REPORT</span><h2 id="result-title"></h2><p id="result-description"></p><div class="result-rewards"></div><button class="primary" id="dismiss-result">탐험 계속</button></dialog>',
+    '<div id="toast" role="status" aria-live="polite"></div><dialog id="result-dialog" aria-labelledby="result-title"><span class="result-icon">✧</span><span class="eyebrow">EXPEDITION REPORT</span><h2 id="result-title"></h2><p id="result-description"></p><div class="result-rewards"></div><div class="result-items" aria-label="획득 장비"></div><button class="primary" id="dismiss-result">탐험 계속</button></dialog>',
   );
 mountBottomPanel(document.getElementById("bottom-panel"));
 const dialog = document.getElementById("result-dialog");
@@ -87,6 +88,34 @@ function refresh() {
       `${r.kills || 0}마리 처치 · ${Math.floor((r.elapsedMs || 0) / 1000)}초 생존. 획득한 보상을 모두 받았습니다.${r.encounter === "boss" && r.outcome === "cleared" ? " 화염·서리·수호 룬 각각 2개 획득!" : ""}`;
     dialog.querySelector(".result-rewards").innerHTML =
       `<div><b>${r.gold}</b><small>GOLD</small></div><div><b>${r.exp}</b><small>EXP</small></div><div><b>${r.items}</b><small>장비</small></div>`;
+    const drops = dialog.querySelector('.result-items');
+    drops.replaceChildren();
+    for (const drop of r.drops || []) {
+      const row = document.createElement('article');
+      row.className = 'result-item';
+      const title = document.createElement('strong');
+      title.textContent = drop.item.name;
+      const destination = document.createElement('small');
+      destination.textContent = drop.convertedToGold ? `${drop.convertedToGold}G 환산 · 가방이 가득 참`
+        : drop.equipped ? '자동 장착됨' : '가방에 보관됨';
+      row.append(title, destination);
+      if (r.beforeCharacter && drop.item.identified !== false && !drop.convertedToGold) {
+        const preview = equipmentPreview(r.beforeCharacter, drop.item);
+        if (preview) {
+          const stats = document.createElement('small');
+          stats.className = 'result-item-comparison';
+          stats.textContent = `공격 ${preview.before.atk} → ${preview.after.atk} · 방어 ${preview.before.def} → ${preview.after.def}`;
+          row.append(stats);
+          for (const lost of preview.lost) {
+            const note = document.createElement('small');
+            note.className = 'comparison-warning';
+            note.textContent = `△ ${lost}`;
+            row.append(note);
+          }
+        }
+      }
+      drops.append(row);
+    }
     dialog.showModal();
   }
 }

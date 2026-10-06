@@ -30,6 +30,19 @@ fs.mkdirSync(out, { recursive: true });
     await page.evaluate(() => clearInterval(window.introHold));
     await page.getByRole('button', { name: /바로 시작/ }).click();
     await page.waitForFunction(() => window.__claudeGame.game.scene.getScene('CombatScene').session.elapsedMs > 0);
+    await page.evaluate(() => {
+      const s = window.__claudeGame.game.scene.getScene('CombatScene');
+      s.scene.pause();
+      s.debugHitboxes = true;
+      s.debugGraphics.setVisible(true); s.debugLabel.setVisible(true);
+      s.arena.hazards = [
+        { type: 'charge', x: 55, y: 390, tx: 330, ty: 560, delay: 1, life: 1, active: false },
+        { type: 'blast', x: 280, y: 390, radius: 48, delay: 1, life: 1, active: false },
+      ];
+      s.drawEffects(s.game.loop.time);
+    });
+    await page.screenshot({ path: out + '/03-hitboxes.png' });
+    await page.evaluate(() => { const s = window.__claudeGame.game.scene.getScene('CombatScene'); s.scene.resume(); s.debugHitboxes = false; s.debugGraphics.setVisible(false); s.debugLabel.setVisible(false); });
     await page.keyboard.down('ArrowRight');
     const frames = new Set();
     for (let i = 0; i < 8; i++) {
@@ -57,6 +70,12 @@ fs.mkdirSync(out, { recursive: true });
     await page.screenshot({ path: out + '/02-poses.png' });
     await page.evaluate(() => { document.querySelector('#pose-sheet').remove(); window.__claudeGame.game.scene.getScene('CombatScene').scene.resume(); });
     await page.emulateMedia({ reducedMotion: 'reduce' });
+    await page.evaluate(() => {
+      const s = window.__claudeGame.game.scene.getScene('CombatScene');
+      s.arena.player.hp = 100; s.arena.invulnerable = 5;
+      s.hurtUntil = 0; s.strikeUntil = 0;
+      for (const e of s.arena.enemies) { e.x = 30; e.y = 220; }
+    });
     await page.keyboard.down('ArrowLeft');
     await page.waitForTimeout(120);
     assert.equal(await page.evaluate(() => window.__claudeGame.game.scene.getScene('CombatScene').player.texture.key), 'hero');
@@ -66,7 +85,21 @@ fs.mkdirSync(out, { recursive: true });
     await page.getByRole('button', { name: /보스 아레나/ }).click();
     await page.waitForSelector('.boss-panel');
     assert.equal(await page.locator('.boss-introduction').count(), 0);
+    await page.evaluate(async () => {
+      const s = window.__claudeGame.game.scene.getScene('CombatScene');
+      const { rollItem } = await import('/claude_game/src/systems/items.js');
+      s.session.rewards.items.push(rollItem(() => 0.5, { grade: 'epic', slot: 'weapon', identified: true }));
+      s.endCombat('escaped');
+    });
+    await page.locator('#result-dialog[open]').waitFor();
+    assert.equal(await page.locator('.result-item').count(), 1);
+    assert.match(await page.locator('.result-item').innerText(), /공격 .* → .*방어/);
+    await page.screenshot({ path: out + '/04-reward-comparison.png' });
+    await page.reload({ waitUntil: 'networkidle' });
+    await page.locator('#result-dialog[open]').waitFor();
+    assert.equal(await page.locator('.result-item').count(), 1);
+    await page.getByRole('button', { name: '탐험 계속', exact: true }).click();
     assert.deepEqual(errors, []);
-    fs.writeFileSync(out + '/results.json', JSON.stringify({ passed: true, errors, frames: [...frames], checks: ['intro freezes timer', 'skip resumes combat', 'movement poses', 'reduced motion static pose', 'reduced motion skips intro'] }, null, 2));
+    fs.writeFileSync(out + '/results.json', JSON.stringify({ passed: true, errors, frames: [...frames], checks: ['intro freezes timer', 'skip resumes combat', 'movement poses', 'reduced motion static pose', 'reduced motion skips intro', 'shared hazard geometry overlay', 'reward equipment comparison', 'result restored from save'] }, null, 2));
   } finally { await browser.close(); }
 })().catch(e => { console.error(e); process.exitCode = 1; });

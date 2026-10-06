@@ -809,6 +809,11 @@ dialog p {
   font-size: 24px;
   color: var(--gold);
 }
+.result-items { display: grid; gap: 8px; max-height: 28vh; overflow: auto; margin: 0 0 18px; text-align: left; }
+.result-item { display: grid; gap: 4px; padding: 10px 12px; border: 1px solid #53656a; border-radius: 8px; background: #14242c; }
+.result-item strong { color: #f2ddb1; }
+.result-item small { color: #aebfbc; line-height: 1.5; }
+.result-item .result-item-comparison { color: #e4d4b7; }
 dialog button {
   width: 100%;
 }

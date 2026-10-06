@@ -95,6 +95,12 @@ export function prepareArt(scene) {
   poses['hero-hurt'] = hero({ 5: '..oaakaaakaao...', 6: '..oaaakkaaaao...', 10: '..oooooooooooo..', 11: '.....oo..oo.....' });
   poses['slime-step'] = patterns.slime.map((row, i) => i === 2 ? '................' : i === 8 ? '..dddddddddddd..' : i === 9 ? '.dddd.dddd.dddd.' : row);
   poses['slime-hurt'] = patterns.slime.map((row, i) => i === 5 ? '..gggkkggkkggg..' : i === 7 ? '..dggkkkkggggd..' : row);
+  poses['bat-flap-a'] = patterns.bat.map((row, i) => ({1:'ppp..........ppp',2:'ppp..........ppp',3:'pqp....pp....pqp'}[i] || row));
+  poses['bat-flap-b'] = patterns.bat.map((row, i) => ({1:'................',2:'...p........p...',3:'...pqp....pqp...'}[i] || row));
+  poses['skull-hover-a'] = patterns.skull.map((row, i) => i === 1 ? '....ssssssss....' : i === 11 ? '.....qq..qq.....' : row);
+  poses['skull-hover-b'] = patterns.skull.map((row, i) => i === 1 ? '......ssss......' : i === 11 ? '...qq..qq..qq...' : row);
+  poses['guardian-ready'] = patterns.guardian.map((row, i) => i === 10 ? '.qqqppppppppqqq.' : row);
+  poses['guardian-strike'] = patterns.guardian.map((row, i) => i === 8 ? '...pwwwwwwwwp....' : i === 9 ? '....pwwwwwwp....' : row);
   for (const [name, pixels] of Object.entries(poses)) {
     if (scene.textures.exists(name)) continue;
     const g = scene.make.graphics({ x: 0, y: 0 }, false);
@@ -117,6 +123,9 @@ export function poseActor(sprite, kind, time, { moving = false, ready = false, s
   if (motionEnabled()) {
     if (kind === 'hero') suffix = hurt ? '-hurt' : strike ? '-strike' : ready ? '-ready' : moving ? (Math.floor(time / 130) % 2 ? '-step-a' : '-step-b') : '';
     if (kind === 'slime') suffix = hurt ? '-hurt' : moving && Math.floor(time / 180) % 2 ? '-step' : '';
+    if (kind === 'bat') suffix = moving ? (Math.floor(time / 120) % 2 ? '-flap-a' : '-flap-b') : '';
+    if (kind === 'skull') suffix = moving && Math.floor(time / 240) % 2 ? '-hover-a' : moving ? '-hover-b' : '';
+    if (kind === 'guardian') suffix = strike ? '-strike' : ready ? '-ready' : '';
   }
   sprite.setTexture(kind + suffix);
 }
@@ -199,7 +208,28 @@ export function drawRoom(scene, width, height, combat = false) {
   g.fillStyle(0x09121a, 0.3);
   g.fillRect(0, 0, 10, height);
   g.fillRect(width - 10, 0, 10, height);
-  return g;
+  const distant = scene.add.graphics().setDepth(-9);
+  if (!combat) {
+    for (let x = 36; x < width + 120; x += 280) {
+      const archTop = Math.max(0, horizon - 162);
+      distant.fillStyle(0x55747a, 0.08);
+      distant.fillRect(x + 8, archTop + 36, 9, horizon - archTop - 36);
+      distant.fillRect(x + 104, archTop + 36, 9, horizon - archTop - 36);
+      distant.fillRect(x, archTop + 30, 122, 6);
+      distant.fillStyle(0x9bb8b1, 0.08);
+      distant.fillRect(x + 56, archTop + 64, 3, horizon - archTop - 64);
+    }
+  }
+  return {
+    base: g,
+    distant,
+    get x() { return g.x; },
+    set x(value) {
+      g.x = value;
+      distant.x = value * 0.35;
+    },
+    destroy() { g.destroy(); distant.destroy(); },
+  };
 }
 export function floatingText(scene, x, y, text, color = "#efd59a") {
   scene.feedbackLabels ||= new Set();

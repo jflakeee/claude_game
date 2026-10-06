@@ -1,5 +1,6 @@
 import { BOSS_NAMES } from "../data/expansion.js";
 import { arenaBounds, bossLayout } from "./arenaLayout.js";
+import { HAZARD_GEOMETRY, distanceToSegment } from "./hazardRules.js";
 export function initEncounter(
   arena,
   { encounter = "survival", bossWins = 0 } = {},
@@ -43,18 +44,6 @@ function hitPlayer(arena, stats, damage, events) {
   arena.invulnerable = 0.75;
   events.push({ type: "hurt" });
 }
-function lineDistance(p, a, b) {
-  const dx = b.x - a.x,
-    dy = b.y - a.y,
-    t = Math.max(
-      0,
-      Math.min(
-        1,
-        ((p.x - a.x) * dx + (p.y - a.y) * dy) / (dx * dx + dy * dy || 1),
-      ),
-    );
-  return Math.hypot(p.x - a.x - t * dx, p.y - a.y - t * dy);
-}
 export function updateEncounters(arena, dt, stats, random, events) {
   const p = arena.player;
   arena.playerHex = Math.max(0, arena.playerHex - dt);
@@ -82,6 +71,7 @@ export function updateEncounters(arena, dt, stats, random, events) {
     arena.packTimer = arena.encounter === "boss" ? 25 : 45;
     events.push({
       type: "warning",
+      priority: 1,
       message: "저주 군집 출현 · 보라색 범위를 피하세요",
     });
   }
@@ -99,7 +89,7 @@ export function updateEncounters(arena, dt, stats, random, events) {
         life: 0.35,
         x: type === "blast" ? p.x : boss.x,
         y: type === "blast" ? p.y : boss.y,
-        radius: 48,
+        radius: HAZARD_GEOMETRY.blastRadius,
         tx: p.x,
         ty: p.y,
         active: false,
@@ -107,6 +97,7 @@ export function updateEncounters(arena, dt, stats, random, events) {
       arena.hazards.push(hazard);
       events.push({
         type: "warning",
+        priority: 2,
         message: {
           blast: "붕괴 예고 · 원 밖으로 이동!",
           nova: "탄막 예고 · 탄 사이로 회피!",
@@ -133,11 +124,11 @@ export function updateEncounters(arena, dt, stats, random, events) {
         }
       } else if (h.type === "charge" && boss) {
         boss.dash = { x: h.tx, y: h.ty, remaining: 0.45 };
-        if (lineDistance(p, { x: h.x, y: h.y }, { x: h.tx, y: h.ty }) < 22)
+        if (distanceToSegment(p, { x: h.x, y: h.y }, { x: h.tx, y: h.ty }) < HAZARD_GEOMETRY.chargeHalfWidth)
           hitPlayer(arena, stats, 22, events);
       } else if (
         h.type === "blast" &&
-        Math.hypot(p.x - h.x, p.y - h.y) < h.radius
+      Math.hypot(p.x - h.x, p.y - h.y) < HAZARD_GEOMETRY.blastRadius
       )
         hitPlayer(arena, stats, 24, events);
     }
@@ -154,7 +145,7 @@ export function updateEncounters(arena, dt, stats, random, events) {
     shot.x += shot.vx * dt;
     shot.y += shot.vy * dt;
     shot.life -= dt;
-    if (Math.hypot(shot.x - p.x, shot.y - p.y) < 17) {
+    if (Math.hypot(shot.x - p.x, shot.y - p.y) < HAZARD_GEOMETRY.enemyShotRadius) {
       hitPlayer(arena, stats, 14, events);
       shot.life = 0;
     }

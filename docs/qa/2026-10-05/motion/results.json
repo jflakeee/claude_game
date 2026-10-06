@@ -3,6 +3,8 @@
   "errors": [],
   "frames": [
     "hero-step-b",
+    "hero-strike",
+    "hero-hurt",
     "hero-step-a"
   ],
   "checks": [
@@ -10,6 +12,9 @@
     "skip resumes combat",
     "movement poses",
     "reduced motion static pose",
-    "reduced motion skips intro"
+    "reduced motion skips intro",
+    "shared hazard geometry overlay",
+    "reward equipment comparison",
+    "result restored from save"
   ]
 }

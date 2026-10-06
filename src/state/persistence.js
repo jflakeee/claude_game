@@ -98,6 +98,20 @@ export function hydrateState(saved, defaults) {
       distancePx: number(saved.runState?.distancePx, 0),
       stageIndex: number(saved.runState?.stageIndex, 0),
     },
+    lastResult: saved.lastResult && typeof saved.lastResult === 'object' &&
+      ['cleared', 'failed', 'escaped', 'interrupted'].includes(saved.lastResult.outcome) &&
+      Number.isFinite(saved.lastResult.gold) && Number.isFinite(saved.lastResult.exp)
+      ? {
+          ...saved.lastResult,
+          gold: number(saved.lastResult.gold, 0),
+          exp: number(saved.lastResult.exp, 0),
+          items: Math.floor(number(saved.lastResult.items, 0)),
+          drops: Array.isArray(saved.lastResult.drops) ? saved.lastResult.drops.filter(d => d?.item?.id && typeof d.item.name === 'string').slice(0, 30) : [],
+          beforeCharacter: saved.lastResult.beforeCharacter && typeof saved.lastResult.beforeCharacter === 'object'
+            ? saved.lastResult.beforeCharacter
+            : null,
+        }
+      : null,
   };
   const session = saved.combatSession;
   if (

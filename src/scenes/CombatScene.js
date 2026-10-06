@@ -14,6 +14,7 @@ import { saveState } from "../state/persistence.js";
 import { prepareArt, drawRoom, floatingText, poseActor } from "./art.js";
 import { sound } from "../audio.js";
 import { arenaBounds, bossLayout } from "../systems/arenaLayout.js";
+import { HAZARD_GEOMETRY } from "../systems/hazardRules.js";
 
 export class CombatScene extends Phaser.Scene {
   constructor() {
@@ -62,6 +63,12 @@ export class CombatScene extends Phaser.Scene {
     });
     this.joystick = this.add.graphics().setDepth(15);
     this.effects = this.add.graphics().setDepth(2);
+    this.debugHitboxes = false;
+    if (import.meta.env.DEV) {
+      this.debugGraphics = this.add.graphics().setDepth(20);
+      this.debugLabel = this.add.text(10, 72, '', { fontFamily: 'system-ui', fontSize: '10px', color: '#fff', backgroundColor: '#10202acc', padding: { x: 5, y: 3 } }).setDepth(21).setVisible(false);
+      this.input.keyboard?.on('keydown-F2', () => { this.debugHitboxes = !this.debugHitboxes; this.debugGraphics.setVisible(this.debugHitboxes); this.debugLabel.setVisible(this.debugHitboxes); });
+    }
     this.seal = this.add.graphics().setDepth(-8);
     this.drawSeal();
     this.hud = document.createElement("div");
@@ -173,8 +180,14 @@ export class CombatScene extends Phaser.Scene {
         sound("hurt");
         if (motionEnabled()) this.cameras.main.shake(80, 0.003);
       } else if (event.type === "warning") {
-        this.warning = event.message;
-        this.warningUntil = time + 2000;
+        const priority = event.priority || 1;
+        if (priority > (this.warningPriority || 0) || time >= (this.warningUntil || 0)) {
+          this.warning = event.message;
+          this.warningPriority = priority;
+        } else if (priority === this.warningPriority && !this.warning.includes(event.message)) {
+          this.warning = `${this.warning} · ${event.message}`.slice(0, 100);
+        }
+        this.warningUntil = Math.max(this.warningUntil || 0, time + 2000);
       }
     }
     const player = this.arena.player;
@@ -205,6 +218,9 @@ export class CombatScene extends Phaser.Scene {
     for (const e of this.arena.enemies) {
       if (!e.boss && e.kind === 0) poseActor(this.enemySprites.get(e.id), 'slime', time,
         { moving: true, hurt: this.hitEffects.has(e.id) });
+      else if (!e.boss && e.kind === 1) poseActor(this.enemySprites.get(e.id), 'bat', time, { moving: true });
+      else if (!e.boss) poseActor(this.enemySprites.get(e.id), 'skull', time, { moving: true });
+      else poseActor(this.enemySprites.get(e.id), 'guardian', time, { ready: true, strike: !!e.dash });
     }
     for (const [id, fx] of this.hitEffects) {
       const sprite = this.enemySprites.get(id);
@@ -283,13 +299,13 @@ export class CombatScene extends Phaser.Scene {
     for (const e of a.enemies) {
       if (e.leader) {
         g.fillStyle(0xb86fda, 0.09);
-        g.fillCircle(e.x, e.y, 100);
+        g.fillCircle(e.x, e.y, HAZARD_GEOMETRY.leaderAuraRadius);
         g.lineStyle(1, 0xb86fda, 0.5);
-        g.strokeCircle(e.x, e.y, 100);
+        g.strokeCircle(e.x, e.y, HAZARD_GEOMETRY.leaderAuraRadius);
         // Four inward marks distinguish a hostile field from a player aura.
         for (let i = 0; i < 4; i++) {
           const angle = i * Math.PI / 2;
-          const cx = e.x + Math.cos(angle) * 94, cy = e.y + Math.sin(angle) * 94;
+          const cx = e.x + Math.cos(angle) * (HAZARD_GEOMETRY.leaderAuraRadius - 6), cy = e.y + Math.sin(angle) * (HAZARD_GEOMETRY.leaderAuraRadius - 6);
           g.lineStyle(2, 0xd6a5ed, 0.8);
           g.lineBetween(cx - Math.cos(angle - 0.55) * 10, cy - Math.sin(angle - 0.55) * 10, cx, cy);
           g.lineBetween(cx - Math.cos(angle + 0.55) * 10, cy - Math.sin(angle + 0.55) * 10, cx, cy);
@@ -306,7 +322,7 @@ export class CombatScene extends Phaser.Scene {
       g.fillStyle(color, h.active ? 0.32 : 0.14);
       if (h.type === "charge") {
         // Filled corridor visualizes the existing center-distance threshold.
-        g.lineStyle(44, color, h.active ? 0.22 : 0.1);
+        g.lineStyle(HAZARD_GEOMETRY.chargeHalfWidth * 2, color, h.active ? 0.22 : 0.1);
         g.lineBetween(h.x, h.y, h.tx, h.ty);
         g.lineStyle(2, color, 0.85);
         g.lineBetween(h.x, h.y, h.tx, h.ty);
@@ -327,12 +343,31 @@ export class CombatScene extends Phaser.Scene {
         }
       } else {
         g.fillCircle(h.x, h.y, h.type === "nova" ? 60 : h.radius);
-        g.strokeCircle(h.x, h.y, h.type === "nova" ? 60 : h.radius);
+        g.strokeCircle(h.x, h.y, h.radius);
       }
     }
     g.fillStyle(0xed869c);
     for (const s of a.enemyShots) {
       g.fillCircle(s.x, s.y, 5);
+    }
+    if (this.debugGraphics) {
+      const d = this.debugGraphics;
+      d.clear();
+      this.debugLabel.setText('F2 끄기 · 플레이어 접촉 반경 / 공격 판정');
+      if (this.debugHitboxes) {
+        d.lineStyle(2, 0x65f3e1, 0.9);
+        d.strokeCircle(p.x, p.y, HAZARD_GEOMETRY.playerContactRadius);
+        for (const e of a.enemies) d.strokeCircle(e.x, e.y, e.boss ? HAZARD_GEOMETRY.bossShotTargetRadius : HAZARD_GEOMETRY.enemyShotTargetRadius);
+        for (const h of a.hazards) {
+          d.lineStyle(2, 0xfff36a, 1);
+          if (h.type === 'blast') d.strokeCircle(h.x, h.y, HAZARD_GEOMETRY.blastRadius);
+          if (h.type === 'charge') {
+            d.lineStyle(HAZARD_GEOMETRY.chargeHalfWidth * 2, 0xfff36a, 0.8);
+            d.lineBetween(h.x, h.y, h.tx, h.ty);
+          }
+        }
+        for (const s of a.enemyShots) d.strokeCircle(s.x, s.y, HAZARD_GEOMETRY.enemyShotRadius);
+      }
     }
     const labels = [];
     if (a.playerHex > 0) labels.push("쇠약 · 방어/이동 감소");

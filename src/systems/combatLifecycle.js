@@ -18,6 +18,7 @@ export function beginCombat(state, encounter='survival') {
       gold: state.currency.gold,
       exp: state.character.exp,
       stageIndex: state.runState.stageIndex,
+      character: JSON.parse(JSON.stringify(state.character)),
     },
   };
   state.runState.mode = "combat";
@@ -36,7 +37,10 @@ export function finishCombat(state, outcome = "escaped") {
     addReward(session,{gold:150,exp:100,item:rollItem(Math.random,{grade:'epic',identified:true})});
   }
   settleCombat(session, state.currency, state.character);
-  for (const item of session.rewards.items) receiveItem(state, item);
+  const drops = session.rewards.items.map(item => ({
+    item: JSON.parse(JSON.stringify(item)),
+    ...receiveItem(state, item),
+  }));
   applyLevelUps(state.character);
   state.lastResult = {
     outcome,
@@ -46,6 +50,8 @@ export function finishCombat(state, outcome = "escaped") {
     kills: session.kills,
     elapsedMs: session.elapsedMs,
     encounter: session.encounter,
+    drops,
+    beforeCharacter: session.startSnapshot?.character || null,
   };
   state.combatSession = null;
   state.runState.mode = "idle";
