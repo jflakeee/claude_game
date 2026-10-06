@@ -78,7 +78,7 @@ export class CombatScene extends Phaser.Scene {
     document.getElementById("game-container").append(this.hud);
     this.hud.insertAdjacentHTML(
       "beforeend",
-      '<div class="combat-effects" role="status"></div>',
+      '<div class="combat-effects" role="status" aria-live="polite" aria-atomic="true"></div>',
     );
     if (this.encounter === "boss") {
       this.hud.classList.add("boss-mode");
@@ -105,9 +105,12 @@ export class CombatScene extends Phaser.Scene {
       this.introUntil = this.game.loop.time + 900;
       this.intro = document.createElement('div');
       this.intro.className = 'boss-introduction';
-      this.intro.innerHTML = '<span class="eyebrow">회랑의 수호자</span><strong>다가오는 위협을 살피세요</strong><button class="secondary">바로 시작 →</button>';
+      const featuredBoss = this.arena.enemies.find(enemy => enemy.boss);
+      this.intro.innerHTML = '<span class="eyebrow">BOSS ENCOUNTER</span><strong></strong><small>공격 예고와 안전한 이동 경로를 살펴보세요.</small><button class="secondary">바로 시작 →</button>';
+      this.intro.querySelector('strong').textContent = featuredBoss?.name || '회랑의 수호자';
       this.hud.append(this.intro);
       this.intro.querySelector('button').addEventListener('click', () => { this.introUntil = 0; });
+      sound('boss');
       this.cameras.main.fadeIn(450, 13, 23, 30);
     }
     this.events.once("shutdown", () => {
@@ -180,14 +183,7 @@ export class CombatScene extends Phaser.Scene {
         sound("hurt");
         if (motionEnabled()) this.cameras.main.shake(80, 0.003);
       } else if (event.type === "warning") {
-        const priority = event.priority || 1;
-        if (priority > (this.warningPriority || 0) || time >= (this.warningUntil || 0)) {
-          this.warning = event.message;
-          this.warningPriority = priority;
-        } else if (priority === this.warningPriority && !this.warning.includes(event.message)) {
-          this.warning = `${this.warning} · ${event.message}`.slice(0, 100);
-        }
-        this.warningUntil = Math.max(this.warningUntil || 0, time + 2000);
+        this.queueWarning(event, time);
       }
     }
     const player = this.arena.player;
@@ -258,6 +254,16 @@ export class CombatScene extends Phaser.Scene {
     this.hud.querySelector("#combat-kills").textContent =
       `${this.session.kills} 처치 · ${this.session.rewards.gold}G`;
     if (this.session.outcome) this.endCombat(this.session.outcome);
+  }
+  queueWarning({ message, priority = 1 }, time) {
+    if (!message) return;
+    if (priority > (this.warningPriority || 0) || time >= (this.warningUntil || 0)) {
+      this.warning = message;
+      this.warningPriority = priority;
+    } else if (priority === this.warningPriority && !this.warning.includes(message)) {
+      this.warning = `${this.warning} · ${message}`.slice(0, 100);
+    }
+    this.warningUntil = Math.max(this.warningUntil || 0, time + 2000);
   }
   drawSeal() {
     this.seal.clear();

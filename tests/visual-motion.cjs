@@ -56,11 +56,11 @@ fs.mkdirSync(out, { recursive: true });
       s.scene.pause();
       const sheet = document.createElement('div');
       sheet.id = 'pose-sheet';
-      sheet.style.cssText = 'position:fixed;inset:0;z-index:9999;background:#172833;color:#eee;display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:20px';
-      for (const key of ['hero', 'hero-step-a', 'hero-step-b', 'hero-ready', 'hero-strike', 'hero-hurt', 'slime', 'slime-step', 'slime-hurt']) {
+      sheet.style.cssText = 'position:fixed;inset:0;z-index:9999;background:#172833;color:#eee;display:grid;grid-template-columns:repeat(3,1fr);align-content:center;gap:7px;padding:12px;font:10px system-ui';
+      for (const key of ['hero', 'hero-step-a', 'hero-step-b', 'hero-ready', 'hero-strike', 'hero-hurt', 'slime', 'slime-step', 'slime-hurt', 'bat', 'bat-flap-a', 'bat-flap-b', 'skull', 'skull-hover-a', 'skull-hover-b', 'guardian', 'guardian-ready', 'guardian-strike']) {
         const cell = document.createElement('div');
         cell.textContent = key;
-        const c = document.createElement('canvas'); c.width = c.height = 80;
+        const c = document.createElement('canvas'); c.width = c.height = 64;
         const ctx = c.getContext('2d'); ctx.imageSmoothingEnabled = false;
         ctx.drawImage(s.textures.get(key).getSourceImage(), 0, 0, 80, 80);
         cell.append(c); sheet.append(cell);
@@ -69,6 +69,16 @@ fs.mkdirSync(out, { recursive: true });
     });
     await page.screenshot({ path: out + '/02-poses.png' });
     await page.evaluate(() => { document.querySelector('#pose-sheet').remove(); window.__claudeGame.game.scene.getScene('CombatScene').scene.resume(); });
+    const warningResult = await page.evaluate(() => {
+      const s = window.__claudeGame.game.scene.getScene('CombatScene'), now = s.game.loop.time;
+      s.queueWarning({ message: '군집 출현', priority: 1 }, now);
+      s.queueWarning({ message: '돌진 예고', priority: 2 }, now + 50);
+      const priority = s.warning;
+      s.queueWarning({ message: '원형 붕괴 예고', priority: 2 }, now + 100);
+      return { priority, combined: s.warning };
+    });
+    assert.equal(warningResult.priority, '돌진 예고');
+    assert.match(warningResult.combined, /원형 붕괴/);
     await page.emulateMedia({ reducedMotion: 'reduce' });
     await page.evaluate(() => {
       const s = window.__claudeGame.game.scene.getScene('CombatScene');
@@ -100,6 +110,6 @@ fs.mkdirSync(out, { recursive: true });
     assert.equal(await page.locator('.result-item').count(), 1);
     await page.getByRole('button', { name: '탐험 계속', exact: true }).click();
     assert.deepEqual(errors, []);
-    fs.writeFileSync(out + '/results.json', JSON.stringify({ passed: true, errors, frames: [...frames], checks: ['intro freezes timer', 'skip resumes combat', 'movement poses', 'reduced motion static pose', 'reduced motion skips intro', 'shared hazard geometry overlay', 'reward equipment comparison', 'result restored from save'] }, null, 2));
+    fs.writeFileSync(out + '/results.json', JSON.stringify({ passed: true, errors, frames: [...frames], warningResult, checks: ['intro freezes timer', 'skip resumes combat', 'movement poses for every enemy silhouette', 'reduced motion static pose', 'reduced motion skips intro', 'shared hazard geometry overlay', 'warning priority and merge', 'reward equipment comparison', 'result restored from save'] }, null, 2));
   } finally { await browser.close(); }
 })().catch(e => { console.error(e); process.exitCode = 1; });

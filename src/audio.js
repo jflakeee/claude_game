@@ -26,11 +26,11 @@ export function sound(kind = "click") {
     gain = context.createGain();
   oscillator.type = "triangle";
   oscillator.frequency.setValueAtTime(
-    { click: 440, hit: 180, reward: 740, hurt: 90 }[kind] || 440,
+    { click: 440, hit: 180, reward: 740, hurt: 90, boss: 260 }[kind] || 440,
     context.currentTime,
   );
   oscillator.frequency.exponentialRampToValueAtTime(
-    kind === "reward" ? 1100 : 80,
+    kind === "reward" ? 1100 : kind === "boss" ? 130 : 80,
     context.currentTime + 0.09,
   );
   gain.gain.setValueAtTime(0.025, context.currentTime);
