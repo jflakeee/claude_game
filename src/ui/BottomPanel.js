@@ -72,8 +72,14 @@ export function renderTab(tab, state) {
     return sectionNav(tab, "craft") + renderCraft(state);
   if (tab === "shop" && ["merchant", "auction"].includes(state.view))
     return sectionNav(tab, state.view) + renderMarket(state, state.view);
-  if (tab === "equipment")
-    return `${sectionNav("equipment", "gear")}${gradeControl(state)}<div class="section-title">장착 장비 <span>LOADOUT</span></div><ul class="item-list">${state.character.equippedItems.length ? state.character.equippedItems.map((i) => itemRow(i, "unequip-item", "가방으로")).join("") : '<li class="empty-state">장착한 장비 없음 · 탐험하며 장비를 찾아보세요.</li>'}</ul><div class="section-title">인벤토리 <span>${(state.inventory || []).length}/${INVENTORY_CAPACITY}</span></div><ul class="item-list">${(state.inventory || []).map((i) => itemRow(i, "equip-item", "장착", undefined, true, state.character)).join("") || '<li class="empty-state">새로운 장비가 이곳에 모입니다.</li>'}</ul><p class="hint">가방이 가득 차면 새 장비는 자동으로 골드가 됩니다.</p><div class="section-title">스크랩북 <span>${(state.scrapbook || []).length}개</span></div><ul class="item-list">${(state.scrapbook || []).map((i) => itemRow(i, "restore-scrapbook-item", `${itemGoldValue(i)}G 복원`)).join("") || '<li class="empty-state">스크랩북이 비어 있습니다.</li>'}</ul>`;
+  if (tab === "equipment") {
+    const guideItem = (state.inventory || []).find(item => item.identified !== false &&
+      !state.character.equippedItems.some(equipped => equipped.slot === item.slot));
+    const guide = guideItem
+      ? `<aside class="first-equipment-guide"><b>새 장비를 비교해 보세요</b><small>전후 능력치와 세트 효과를 확인한 뒤 직접 장착할 수 있습니다.</small><button data-action="compare-first-item" data-item-id="${esc(guideItem.id)}">${esc(guideItem.name)} 비교 보기</button></aside>`
+      : '';
+    return `${sectionNav("equipment", "gear")}${gradeControl(state)}<div class="section-title">장착 장비 <span>LOADOUT</span></div><ul class="item-list">${state.character.equippedItems.length ? state.character.equippedItems.map((i) => itemRow(i, "unequip-item", "가방으로")).join("") : '<li class="empty-state">장착한 장비 없음 · 탐험하며 장비를 찾아보세요.</li>'}</ul><div class="section-title">인벤토리 <span>${(state.inventory || []).length}/${INVENTORY_CAPACITY}</span></div>${guide}<ul class="item-list">${(state.inventory || []).map((i) => itemRow(i, "equip-item", "장착", undefined, true, state.character)).join("") || '<li class="empty-state">새로운 장비가 이곳에 모입니다.</li>'}</ul><p class="hint">가방이 가득 차면 새 장비는 자동으로 골드가 됩니다.</p><div class="section-title">스크랩북 <span>${(state.scrapbook || []).length}개</span></div><ul class="item-list">${(state.scrapbook || []).map((i) => itemRow(i, "restore-scrapbook-item", `${itemGoldValue(i)}G 복원`)).join("") || '<li class="empty-state">스크랩북이 비어 있습니다.</li>'}</ul>`;
+  }
   if (tab === "skills") return renderSkillTree(state);
   if (tab === "settings")
     return `<div class="section-title">탐험 설정 <span>PREFERENCES</span></div>${gradeControl(state)}${[
@@ -229,6 +235,15 @@ export function mountBottomPanel(container) {
     }
     const button = event.target.closest("[data-action]");
     if (!button) return;
+    if (button.dataset.action === 'compare-first-item') {
+      const details = content.querySelector(`[data-comparison-id="${CSS.escape(button.dataset.itemId)}"]`);
+      if (details) {
+        details.open = true;
+        details.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        details.querySelector('summary')?.focus({ preventScroll: true });
+      }
+      return;
+    }
     const state = store.getState(),
       action = button.dataset.action;
     let message = "";

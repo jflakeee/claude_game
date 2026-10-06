@@ -159,8 +159,19 @@ export function stepArena(
     const speed = enemy.boss
       ? 0
       : (24 + enemy.kind * 6 + arena.elapsed / 18) * (1 - slowed) * enraged;
-    enemy.x += ((p.x - enemy.x) / distance) * speed * dt;
-    enemy.y += ((p.y - enemy.y) / distance) * speed * dt;
+    let moveX = (p.x - enemy.x) / distance, moveY = (p.y - enemy.y) / distance;
+    if (!enemy.boss && !enemy.leader && enemy.kind === 1) {
+      // Bats weave across the approach line while continuing to close in.
+      const weave = Math.sin(arena.elapsed * 4 + enemy.id * 1.7) * 0.42;
+      const x = moveX - moveY * weave, y = moveY + moveX * weave;
+      const norm = Math.hypot(x, y) || 1;
+      moveX = x / norm; moveY = y / norm;
+    } else if (!enemy.boss && !enemy.leader && enemy.kind === 2 && distance < 145) {
+      // Skulls hold a little space instead of joining the contact swarm.
+      moveX *= -0.72; moveY *= -0.72;
+    }
+    enemy.x += moveX * speed * dt;
+    enemy.y += moveY * speed * dt;
     if (distance < HAZARD_GEOMETRY.playerContactRadius && arena.invulnerable <= 0) {
       p.hp = Math.max(
         0,

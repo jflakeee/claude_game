@@ -20,10 +20,15 @@ fs.mkdirSync(out, { recursive: true });
       s.character.equippedItems = ['weapon', 'armor'].map((slot, i) => ({
         ...rollItem(() => 0.5, { grade: 'set', slot, identified: true }), id: `set-${i}`,
       }));
-      s.inventory = [{ ...rollItem(() => 0.5, { grade: 'unique', slot: 'weapon', identified: true }), id: 'candidate' }];
+      s.inventory = [
+        { ...rollItem(() => 0.5, { grade: 'unique', slot: 'weapon', identified: true }), id: 'candidate' },
+        { ...rollItem(() => 0.5, { grade: 'rare', slot: 'charm', identified: true }), id: 'guide-charm' },
+      ];
       s.currency.gold = 400;
       store.notify();
     });
+    await page.getByRole('button', { name: /비교 보기/ }).click();
+    assert.equal(await page.locator('[data-comparison-id="guide-charm"]').evaluate(el => el.open), true);
     await page.locator('[data-comparison-id="candidate"] summary').click();
     await page.getByRole('button', { name: '장비 유지', exact: true }).first().click();
     await page.getByRole('button', { name: '유지 중', exact: true }).waitFor();
@@ -97,7 +102,7 @@ fs.mkdirSync(out, { recursive: true });
     assert.equal(await page.evaluate(() => window.__claudeGame.store.getState().character.equippedItems.some(i => i.id === 'candidate')), true);
     assert.deepEqual(errors, []);
     fs.writeFileSync(out + '/results.json', JSON.stringify({ passed: true, errors, desktop, mobileCombat, compact,
-      checks: ['comparison reflects set loss', 'lock saved and restored', 'manual replacement allowed while locked', 'details retained after state render', 'explicit departure only', 'mobile layout', 'hazard render fixture', 'desktop combat width preserved', 'return restores wide preparation', 'reduced motion flow'] }, null, 2));
+      checks: ['first gear hint opens comparison', 'comparison reflects set loss', 'lock saved and restored', 'manual replacement allowed while locked', 'details retained after state render', 'explicit departure only', 'mobile layout', 'hazard render fixture', 'desktop combat width preserved', 'return restores wide preparation', 'reduced motion flow'] }, null, 2));
     await context.close();
   } finally { await browser.close(); }
 })().catch(e => { console.error(e); process.exitCode = 1; });

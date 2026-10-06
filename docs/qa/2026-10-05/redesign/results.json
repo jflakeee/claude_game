@@ -14,6 +14,7 @@
     "overflow": false
   },
   "checks": [
+    "first gear hint opens comparison",
     "comparison reflects set loss",
     "lock saved and restored",
     "manual replacement allowed while locked",
