@@ -22,9 +22,10 @@
 - 단위 테스트 20개 파일, 121개 통과(적 행동 역할과 첫 장비 도움말 포함).
 - Playwright 모션/전투 검증 통과: 보스 소개 정지·건너뛰기, 적별 포즈, 감소 모션, F2 판정 표시, 경고 우선순위/합산, 장비 보상 비교, 저장 복귀 확인. 상세 결과는 [motion results](../2026-10-05/motion/results.json).
 - Playwright 재설계 검증 통과: 첫 장비 안내와 비교 이동, 세트 상실 설명, 장비 잠금/수동 교체, 320px/390px/넓은 화면, 위험 오버레이, 축소 모션 확인. [결과](../2026-10-05/redesign/results.json).
-- Pages 배포 및 공개 검증 통과: 게임 `acdd48d`, 도메인 `925c98b`, 번들 `/claude_game/assets/index-CidQAHNm.js`. 데스크톱/모바일, 보스 전투/복귀, 설정 저장, 포털 iframe과 오류 0건을 확인했다. [결과와 캡처](deployment/results.json).
+- Pages 배포 및 공개 검증 통과: 게임 `4ef7281`, 도메인 `ae656bc`, 번들 `/claude_game/assets/index-2Rgyv_5u.js`. 데스크톱/모바일, 보스 전투/복귀, 설정 저장, 포털 iframe과 오류 0건을 확인했다. [결과와 캡처](deployment/results.json).
+- 탐험 장면 능력치는 저장소 변경 때만 다시 계산하고, 캐릭터 스프라이트는 포즈가 바뀔 때만 텍스처를 교체하도록 최적화했다. Playwright frame audit 수치는 headless 실행 제한과 부하를 분리하지 못해 실제 성능 개선을 주장하지 않는다. [1배](deployment/performance-1x.json) · [4배 제한](deployment/performance-4x.json).
 - 탐험 대표 화면의 원경 변경을 캡처로 확인했다. 초기 원형 고리 장식은 기존 창과 겹쳐 보였고 낮은 대비의 기둥 실루엣으로 수정한 뒤 재캡처했다.
-- 최신 소스 프로덕션 빌드 성공(`dist/assets/index-CidQAHNm.js`, 약 1.56MB), `git diff --check` 통과. 번들 크기 경고와 코드 분할 미적용은 남아 있다.
+- 최신 소스 프로덕션 빌드 성공(`dist/assets/index-2Rgyv_5u.js`, 약 1.56MB), `git diff --check` 통과. 번들 크기 경고와 코드 분할 미적용은 남아 있다.
 
 ## 계속 남는 항목
 

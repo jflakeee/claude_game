@@ -2,9 +2,10 @@
   "passed": true,
   "errors": [],
   "frames": [
+    "hero-step-a",
+    "hero-step-b",
     "hero-strike",
-    "hero-ready",
-    "hero-step-a"
+    "hero-ready"
   ],
   "warningResult": {
     "priority": "돌진 예고",

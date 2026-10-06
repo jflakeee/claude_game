@@ -16,7 +16,7 @@ fs.mkdirSync('docs/qa/2026-10-06/deployment', { recursive: true });
     page.on('pageerror', error => errors.push(error.message));
     const cdp = await context.newCDPSession(page);
     await cdp.send('Emulation.setCPUThrottlingRate', { rate: cpuThrottle });
-    const response = await page.goto('https://www.fungood.co.kr/claude_game/?perf=c094234', { waitUntil: 'networkidle' });
+    const response = await page.goto(`https://www.fungood.co.kr/claude_game/?perf=${Date.now()}`, { waitUntil: 'networkidle' });
     const measure = (durationMs = 5000) => page.evaluate(durationMs => new Promise(resolve => {
       const deltas = [];
       let previous = performance.now();
@@ -45,7 +45,8 @@ fs.mkdirSync('docs/qa/2026-10-06/deployment', { recursive: true });
     await page.waitForTimeout(1500);
     const combat = await measure();
     const bundle = await page.locator('script[type="module"]').getAttribute('src');
-    const result = { source: 'c094234', bundle, cpuThrottle, viewport: '390x844', status: response.status(), idle, combat, errors };
+    if (!bundle.includes('index-2Rgyv_5u')) throw new Error(`Unexpected deployed bundle: ${bundle}`);
+    const result = { source: '957ab50', bundle, cpuThrottle, viewport: '390x844', status: response.status(), idle, combat, errors };
     fs.writeFileSync(output, JSON.stringify(result, null, 2));
     console.log(result);
     await context.close();
