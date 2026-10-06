@@ -21,6 +21,10 @@ export class IdleScene extends Phaser.Scene {
   create() {
     prepareArt(this);
     this.progress = store.getState().runState;
+    this.stats = computeCombatStats(store.getState().character);
+    this.unsubscribeStats = store.subscribe((state) => {
+      this.stats = computeCombatStats(state.character);
+    });
     this.tickAccumulator = 0;
     this.idleHp = 100;
     this.idleEnemy = { hp: 10 };
@@ -41,6 +45,7 @@ export class IdleScene extends Phaser.Scene {
     this.scale.on("resize", this.resizeHandler);
     this.events.once("shutdown", () => {
       this.scale.off("resize", this.resizeHandler);
+      this.unsubscribeStats?.();
       this.departure.remove();
     });
   }
@@ -95,7 +100,7 @@ export class IdleScene extends Phaser.Scene {
   }
   update(time, delta) {
     const state = store.getState(),
-      stats = computeCombatStats(state.character);
+      stats = this.stats;
     const dt = Math.min(delta, 50),
       active = state.settings.autoProgress !== false,
       fraction = this.progress.distancePx / STAGE_LENGTH_PX;
@@ -140,8 +145,7 @@ export class IdleScene extends Phaser.Scene {
       );
       this.effects.strokeCircle(this.enemy.x, this.enemy.y, 25);
     }
-    this.effectsLabel.setText(
-      [
+    const effectsText = [
         stats.aura === "fury"
           ? "분노 오라"
           : stats.aura === "renewal"
@@ -155,16 +159,14 @@ export class IdleScene extends Phaser.Scene {
         stats.slow ? "서리장막 둔화" : "",
       ]
         .filter(Boolean)
-        .join(" · "),
-    );
-    this.stageLabel.setText(
-      `STAGE ${String(this.progress.stageIndex + 1).padStart(2, "0")}  /  별빛 미궁`,
-    );
-    this.statusLabel.setText(
-      active
-        ? "● 자동 탐험 중 · 장비와 경험치를 수집합니다"
-        : "Ⅱ 탐험 일시 정지 · 설정에서 다시 시작",
-    );
+        .join(" · ");
+    if (this.effectsLabel.text !== effectsText) this.effectsLabel.setText(effectsText);
+    const stageText = `STAGE ${String(this.progress.stageIndex + 1).padStart(2, "0")}  /  별빛 미궁`;
+    if (this.stageLabel.text !== stageText) this.stageLabel.setText(stageText);
+    const statusText = active
+      ? "● 자동 탐험 중 · 장비와 경험치를 수집합니다"
+      : "Ⅱ 탐험 일시 정지 · 설정에서 다시 시작";
+    if (this.statusLabel.text !== statusText) this.statusLabel.setText(statusText);
     this.progressBar.width = (this.scale.width - 135) * fraction;
     if (!active || document.hidden || document.querySelector("dialog[open]"))
       return;
