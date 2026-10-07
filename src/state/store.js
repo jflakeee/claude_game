@@ -17,7 +17,7 @@ export function createStore() {
     combatSession: null,
     lastResult: null,
     materials: { ember: 1, frost: 1, ward: 1, dust: 0 },
-    progression: { kills: 0, bossWins: 0 },
+    progression: { kills: 0, bossWins: 0, firstGrowthComplete: false },
     market: {
       stock: [],
       buyback: [],

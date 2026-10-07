@@ -30,6 +30,8 @@ export function finishCombat(state, outcome = "escaped") {
   if (!session || session.settled) return null;
   session.outcome = outcome;
   if (outcome === "cleared") addReward(session, { gold: 100, exp: 75 });
+  if (session.encounter === "survival" && session.kills > 0 && session.startSnapshot?.character?.equippedItems?.length)
+    state.progression.firstGrowthComplete = true;
   awardMaterials(state,session.kills||0);
   if(outcome==='cleared'&&session.encounter==='boss'){
     state.progression.bossWins++;

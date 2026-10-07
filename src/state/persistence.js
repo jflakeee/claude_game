@@ -80,6 +80,9 @@ export function hydrateState(saved, defaults) {
       ...defaults.progression,
       kills: Math.floor(number(saved.progression?.kills, 0)),
       bossWins: Math.floor(number(saved.progression?.bossWins, 0)),
+      firstGrowthComplete: typeof saved.progression?.firstGrowthComplete === "boolean"
+        ? saved.progression.firstGrowthComplete
+        : number(saved.progression?.kills, 0) > 0 && items(character.equippedItems).length > 0,
     },
     market: {
       ...defaults.market,

@@ -21,6 +21,7 @@ import {
 } from "./ExpansionPanel.js";
 import { RUNES, RUNEWORDS } from "../data/expansion.js";
 import { equipmentPreview } from "../systems/equipmentPreview.js";
+import { computeCombatStats } from "../systems/effectiveStats.js";
 
 const TABS = {
   equipment: "장비",
@@ -67,6 +68,18 @@ function itemRow(
   return `<li class="item-row" data-row-id="${esc(item.id)}"><span class="item-icon grade ${esc(item.grade)}">${item.slot === 'armor' ? '◇' : item.slot === 'charm' ? '✧' : '⚔'}</span><div class="item-info"><b>${esc(item.name)}</b><small><span class="grade ${esc(item.grade)}">${gradeLabel(item.grade)}</span> · ${esc({ weapon: "무기", armor: "갑옷", charm: "부적" }[item.slot] || "")} · 공격 +${Number(item.statBonus?.atk) || 0} · 방어 +${Number(item.statBonus?.def) || 0}</small><small>${item.setId ? "별빛 세트 · " : item.uniqueEffect ? "별의 심장: 치명타 +10% · " : ""}${item.affix ? esc(item.affix.name) + " · " : ""}${(item.sockets || []).map((r) => RUNES[r]?.glyph || "?").join(" ")}${item.runeword ? " · " + esc(RUNEWORDS.find((w) => w.id === item.runeword)?.name) : ""}</small></div><div class="item-actions">${action === 'unequip-item' ? `<button data-action="lock-equipment" data-item-id="${esc(item.id)}" aria-pressed="${!!item.autoEquipLocked}">${item.autoEquipLocked ? '유지 중' : '장비 유지'}</button>` : ''}${action ? `<button data-action="${action}" data-item-id="${esc(item.id)}">${label}</button>` : `<span class="equipped-label">${esc(status)}</span>`}</div>${character && action === 'equip-item' ? comparison(item, character) : ''}</li>`;
 }
 
+function firstGrowthGuide(state, guideItem) {
+  if (state.progression?.firstGrowthComplete) return '';
+  if (!state.character.equippedItems.length) {
+    if (guideItem) {
+      return `<aside class="first-equipment-guide" data-growth-step="compare"><b>첫 성장 · 장비 비교</b><small>전후 능력치와 세트 변화를 확인한 뒤 장착 버튼을 눌러 주세요.</small><button data-action="compare-first-item" data-item-id="${esc(guideItem.id)}">${esc(guideItem.name)} 비교하기</button></aside>`;
+    }
+    return `<aside class="first-equipment-guide" data-growth-step="loot"><b>첫 성장 · 장비를 찾아보세요</b><small>생존 전투에서 적을 처치하면 장비를 얻을 수 있습니다. 이동은 드래그나 방향키로 조작합니다.</small><button data-action="start-first-growth-combat">생존 전투 시작</button></aside>`;
+  }
+  const stats = computeCombatStats(state.character);
+  return `<aside class="first-equipment-guide" data-growth-step="combat"><b>첫 장비 준비 완료</b><small>현재 공격 ${stats.atk} · 방어 ${stats.def}. 생존 전투에서 이동과 자동 공격을 확인해 보세요.</small><button data-action="start-first-growth-combat">생존 전투 시작</button></aside>`;
+}
+
 export function renderTab(tab, state) {
   if (tab === "equipment" && state.view === "craft")
     return sectionNav(tab, "craft") + renderCraft(state);
@@ -75,9 +88,9 @@ export function renderTab(tab, state) {
   if (tab === "equipment") {
     const guideItem = (state.inventory || []).find(item => item.identified !== false &&
       !state.character.equippedItems.some(equipped => equipped.slot === item.slot));
-    const guide = guideItem
+    const guide = firstGrowthGuide(state, guideItem) || (guideItem
       ? `<aside class="first-equipment-guide"><b>새 장비를 비교해 보세요</b><small>전후 능력치와 세트 효과를 확인한 뒤 직접 장착할 수 있습니다.</small><button data-action="compare-first-item" data-item-id="${esc(guideItem.id)}">${esc(guideItem.name)} 비교 보기</button></aside>`
-      : '';
+      : '');
     return `${sectionNav("equipment", "gear")}${gradeControl(state)}<div class="section-title">장착 장비 <span>LOADOUT</span></div><ul class="item-list">${state.character.equippedItems.length ? state.character.equippedItems.map((i) => itemRow(i, "unequip-item", "가방으로")).join("") : '<li class="empty-state">장착한 장비 없음 · 탐험하며 장비를 찾아보세요.</li>'}</ul><div class="section-title">인벤토리 <span>${(state.inventory || []).length}/${INVENTORY_CAPACITY}</span></div>${guide}<ul class="item-list">${(state.inventory || []).map((i) => itemRow(i, "equip-item", "장착", undefined, true, state.character)).join("") || '<li class="empty-state">새로운 장비가 이곳에 모입니다.</li>'}</ul><p class="hint">가방이 가득 차면 새 장비는 자동으로 골드가 됩니다.</p><div class="section-title">스크랩북 <span>${(state.scrapbook || []).length}개</span></div><ul class="item-list">${(state.scrapbook || []).map((i) => itemRow(i, "restore-scrapbook-item", `${itemGoldValue(i)}G 복원`)).join("") || '<li class="empty-state">스크랩북이 비어 있습니다.</li>'}</ul>`;
   }
   if (tab === "skills") return renderSkillTree(state);
@@ -244,6 +257,10 @@ export function mountBottomPanel(container) {
       }
       return;
     }
+    if (button.dataset.action === 'start-first-growth-combat') {
+      document.querySelector('.survival-gate')?.click();
+      return;
+    }
     const state = store.getState(),
       action = button.dataset.action;
     let message = "";
@@ -320,6 +337,7 @@ export function mountBottomPanel(container) {
     if (expansion) message = expansion.message;
     sound("click");
     saveState(state);
+    if (action === "equip-item" || action === "unequip-item") lastHtml = "";
     store.notify();
     if (message) showToast(message);
   });
