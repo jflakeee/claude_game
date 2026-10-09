@@ -2,7 +2,8 @@ import Phaser from "phaser";
 import { IdleScene } from "./scenes/IdleScene.js";
 import { CombatScene } from "./scenes/CombatScene.js";
 import { store } from "./state/globalStore.js";
-import { saveState, loadState, hydrateState } from "./state/persistence.js";
+import { saveState, readSave, hydrateState } from "./state/persistence.js";
+import { mountSaveNotice } from "./ui/SaveNotice.js";
 import { mountBottomPanel, showToast } from "./ui/BottomPanel.js";
 import { finishCombat } from "./systems/combatLifecycle.js";
 import { unlockAudio } from "./audio.js";
@@ -10,7 +11,17 @@ import { ensureMarket, tickMarket } from "./systems/market.js";
 import { motionEnabled } from "./systems/presentation.js";
 import { equipmentPreview } from "./systems/equipmentPreview.js";
 
-store.setState(hydrateState(loadState(), store.getState()));
+const loaded = readSave();
+const canStart = ["empty", "legacy", "loaded"].includes(loaded.status);
+mountSaveNotice({
+  initial: canStart ? null : { ok: false, reason: loaded.status },
+  retry: () => saveState(store.getState()),
+});
+if (canStart) bootGame(loaded.state);
+else document.getElementById("app").hidden = true;
+
+function bootGame(saved) {
+store.setState(hydrateState(saved, store.getState()));
 tickMarket(store.getState());
 ensureMarket(store.getState());
 setInterval(() => {
@@ -158,4 +169,5 @@ const observer = new ResizeObserver((entries) => {
   if (width > 0 && height > 0) game.scale.setParentSize(width, height);
 });
 observer.observe(document.getElementById("game-container"));
-if (import.meta.env.DEV) window.__claudeGame = { game, store };
+if (import.meta.env.DEV) window.__claudeGame = { game, store, save: persist };
+}

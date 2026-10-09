@@ -24,6 +24,27 @@
   --coral: #e99a78;
 }
 
+.save-notice {
+  position: fixed;
+  z-index: 10000;
+  bottom: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(480px, calc(100% - 32px));
+  box-sizing: border-box;
+  padding: 16px;
+  border: 1px solid var(--coral);
+  border-radius: 8px;
+  background: #15262e;
+  color: #eee9df;
+  box-shadow: 0 4px 24px #0008;
+}
+.save-notice[hidden], #app[hidden] { display: none; }
+.save-notice strong { font-size: 16px; line-height: 1.5; }
+.save-notice p { font-size: 14px; line-height: 1.65; margin: 8px 0 12px; color: #c6d4d0; }
+.save-notice button { min-height: 44px; }
+.save-notice-blocked { top: 50%; bottom: auto; transform: translate(-50%, -50%); }
+
 /* Exploration and preparation share a stage; combat keeps its existing width. */
 .expedition-actions {
   position: absolute;

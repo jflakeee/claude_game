@@ -2,6 +2,8 @@ import { createCharacter, createCurrency, createRunState } from "./models.js";
 
 export function createStore() {
   const state = {
+    schemaVersion: 1,
+    revision: 0,
     character: createCharacter(),
     currency: createCurrency(),
     inventory: [],

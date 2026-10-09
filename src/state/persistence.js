@@ -1,30 +1,73 @@
 import { GRADE_ORDER } from "../data/dropTable.js";
 const STORAGE_KEY = "claude_game_save_v1";
+export const SAVE_SCHEMA_VERSION = 1;
+const listeners = new Set();
+
+export function subscribeSaveStatus(listener) {
+  listeners.add(listener);
+  return () => listeners.delete(listener);
+}
+
+function report(result) {
+  for (const listener of listeners) listener(result);
+  return result;
+}
 
 function resolveStorage(storage) {
   return storage || globalThis.localStorage;
 }
 
-export function saveState(state, storage) {
-  try {
-    resolveStorage(storage).setItem(STORAGE_KEY, JSON.stringify(state));
-  } catch (e) {
-    // storage unavailable or quota exceeded — continue without persisting this save
-  }
-}
-
-export function loadState(storage) {
+export function readSave(storage) {
   let raw;
   try {
     raw = resolveStorage(storage).getItem(STORAGE_KEY);
   } catch (e) {
-    return null;
+    return { status: "unavailable", state: null };
   }
-  if (!raw) return null;
+  if (raw === null) return { status: "empty", state: null };
   try {
-    return JSON.parse(raw);
+    const state = JSON.parse(raw);
+    if (!state || typeof state !== "object" || Array.isArray(state))
+      return { status: "corrupt", state: null };
+    if (state.schemaVersion === undefined) return { status: "legacy", state, raw };
+    if (state.schemaVersion !== SAVE_SCHEMA_VERSION)
+      return { status: "unsupported", state: null };
+    if (!Number.isSafeInteger(state.revision) || state.revision < 0)
+      return { status: "corrupt", state: null };
+    return { status: "loaded", state };
   } catch (e) {
-    return null;
+    return { status: "corrupt", state: null };
+  }
+}
+
+export function loadState(storage) {
+  return readSave(storage).state;
+}
+
+export function saveState(state, storage) {
+  const current = readSave(storage);
+  if (!["empty", "legacy", "loaded"].includes(current.status))
+    return report({ ok: false, reason: current.status });
+  const revision = state.revision ?? 0;
+  if (!Number.isSafeInteger(revision) || revision < 0 ||
+      (state.schemaVersion !== undefined && state.schemaVersion !== SAVE_SCHEMA_VERSION))
+    return report({ ok: false, reason: "unsupported" });
+  // Detect stale writers; this is not a cross-tab transaction lock.
+  if (current.status === "loaded" && current.state.revision !== revision)
+    return report({ ok: false, reason: "conflict" });
+  try {
+    const target = resolveStorage(storage);
+    const nextRevision = revision + 1;
+    if (!Number.isSafeInteger(nextRevision)) return report({ ok: false, reason: "unsupported" });
+    const raw = JSON.stringify({ ...state, schemaVersion: SAVE_SCHEMA_VERSION, revision: nextRevision });
+    if (current.status === "legacy" && target.getItem(`${STORAGE_KEY}_legacy_backup`) === null)
+      target.setItem(`${STORAGE_KEY}_legacy_backup`, current.raw);
+    target.setItem(STORAGE_KEY, raw);
+    state.schemaVersion = SAVE_SCHEMA_VERSION;
+    state.revision = nextRevision;
+    return report({ ok: true, revision: nextRevision });
+  } catch (e) {
+    return report({ ok: false, reason: "unavailable" });
   }
 }
 
@@ -56,6 +99,8 @@ export function hydrateState(saved, defaults) {
       : [];
   const merged = {
     ...defaults,
+    schemaVersion: SAVE_SCHEMA_VERSION,
+    revision: Number.isSafeInteger(saved.revision) && saved.revision >= 0 ? saved.revision : 0,
     character: {
       ...defaults.character,
       ...character,

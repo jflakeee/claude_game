@@ -1,0 +1,13 @@
+{
+  "passed": true,
+  "url": "http://127.0.0.1:5174/claude_game/",
+  "checks": [
+    "legacy backup and reload preserve progress",
+    "failed writes show one notice; keyboard retry saves progress",
+    "save retry remains usable inside native modal",
+    "future startup blocks game without overwriting save",
+    "corrupt startup blocks game without overwriting save",
+    "unavailable startup blocks game without overwriting save"
+  ],
+  "errors": []
+}
