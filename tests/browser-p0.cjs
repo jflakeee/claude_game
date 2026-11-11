@@ -53,6 +53,7 @@ const URL = "http://127.0.0.1:5173/claude_game/";
     const game = window.__claudeGame;
     const scene = game.game.scene.getScene("CombatScene");
     scene.session.rewards.gold = 13;
+    const initialGold = game.store.getState().currency.gold;
     const original = Storage.prototype.setItem;
     Storage.prototype.setItem = function (key, value) {
       if (key === "claude_game_save_v1") throw new Error("quota");
@@ -63,6 +64,7 @@ const URL = "http://127.0.0.1:5173/claude_game/";
       return {
         pending: game.store.getState().combatSession !== null,
         gold: game.store.getState().currency.gold,
+        initialGold,
         active: scene.scene.isActive(),
       };
     } finally {
@@ -70,11 +72,11 @@ const URL = "http://127.0.0.1:5173/claude_game/";
     }
   });
   assert.equal(combat.pending, true);
-  assert.equal(combat.gold, 0);
+  assert.equal(combat.gold, combat.initialGold);
   assert.equal(combat.active, true);
   await page.evaluate(() => window.__claudeGame.game.scene.getScene("CombatScene").endCombat("escaped"));
   await page.waitForFunction(() => window.__claudeGame.store.getState().combatSession === null);
-  assert.equal(await page.evaluate(() => window.__claudeGame.store.getState().currency.gold), 13);
+  assert.equal(await page.evaluate(() => window.__claudeGame.store.getState().currency.gold), combat.initialGold + 13);
 
   await page.reload({ waitUntil: "networkidle" });
   await page.waitForFunction(() => !!window.__claudeGame);
@@ -82,4 +84,4 @@ const URL = "http://127.0.0.1:5173/claude_game/";
   assert.deepEqual(errors, []);
   await browser.close();
   console.log("PASS: browser startup, second tab blocked, failed save, combat settlement retry, reload");
-})().catch(error => { console.error(error); process.exitCode = 1; });
+})().catch(error => { console.error(error); process.exit(1); });
