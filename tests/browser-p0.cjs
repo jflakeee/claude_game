@@ -4,6 +4,9 @@ const URL = "http://127.0.0.1:5173/claude_game/";
 
 (async () => {
   const browser = await chromium.launch({ headless: true });
+  // Fail quickly and preserve diagnostics instead of hanging a CI runner.
+  const timeout = setTimeout(() => { console.error("P0 browser acceptance timeout"); process.exit(2); }, 90000);
+  timeout.unref();
   const context = await browser.newContext({ viewport: { width: 390, height: 844 } });
   const errors = [];
   const page = await context.newPage();
@@ -11,6 +14,7 @@ const URL = "http://127.0.0.1:5173/claude_game/";
   await page.goto(URL, { waitUntil: "networkidle" });
   await page.waitForFunction(() => !!window.__claudeGame);
   assert.equal(await page.locator("#app").isVisible(), true);
+  assert.equal(await page.evaluate(() => !!navigator.locks?.request), true);
 
   const second = await context.newPage();
   second.on("pageerror", error => errors.push(error.message));
