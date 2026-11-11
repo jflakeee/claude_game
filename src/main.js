@@ -34,7 +34,8 @@ if (writer.ok) {
   window.addEventListener("storage", event => {
     if (event.key === "claude_game_writer_v1" && !writer.guard()) loseWriter();
   });
-  window.addEventListener("pagehide", writer.release);
+  // Save handlers run during pagehide; release only after their synchronous writes.
+  window.addEventListener("pagehide", () => queueMicrotask(writer.release));
 } else {
   loseWriter();
 }
