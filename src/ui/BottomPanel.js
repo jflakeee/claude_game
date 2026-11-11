@@ -261,7 +261,7 @@ export function mountBottomPanel(container) {
       document.querySelector('.survival-gate')?.click();
       return;
     }
-    const state = store.getState(),
+    const state = structuredClone(store.getState()),
       action = button.dataset.action;
     let message = "";
     if (action === "cycle-auto-equip-grade") {
@@ -335,8 +335,13 @@ export function mountBottomPanel(container) {
       fields,
     );
     if (expansion) message = expansion.message;
+    const saved = saveState(state);
+    if (!saved.ok) {
+      showToast("저장에 실패하여 변경사항을 적용하지 않았습니다.");
+      return;
+    }
+    Object.assign(store.getState(), state);
     sound("click");
-    saveState(state);
     if (action === "equip-item" || action === "unequip-item") lastHtml = "";
     store.notify();
     if (message) showToast(message);
