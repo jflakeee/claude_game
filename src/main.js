@@ -10,40 +10,35 @@ import { unlockAudio } from "./audio.js";
 import { ensureMarket, tickMarket } from "./systems/market.js";
 import { motionEnabled } from "./systems/presentation.js";
 import { equipmentPreview } from "./systems/equipmentPreview.js";
-import { claimWriter, renewWriter, releaseWriter } from "./state/tabWriter.js";
+import { acquireGameWriter } from "./state/gameWriter.js";
 
 const writerId = crypto.randomUUID();
-const writerReady = claimWriter(localStorage, writerId);
-setSaveWriterGuard(() => renewWriter(localStorage, writerId));
+const writer = await acquireGameWriter({ storage: localStorage, owner: writerId });
+setSaveWriterGuard(writer.guard);
 const loaded = readSave();
-const canStart = writerReady && ["empty", "legacy", "loaded"].includes(loaded.status);
-if (writerReady) {
-  const loseWriter = () => {
-    document.getElementById("app").hidden = true;
-    let notice = document.getElementById("writer-conflict");
-    if (!notice) {
-      notice = document.createElement("p");
-      notice.id = "writer-conflict";
-      notice.setAttribute("role", "alert");
-      notice.textContent = "다른 탭에서 게임을 사용 중입니다. 진행 데이터 보호를 위해 이 탭을 중지했습니다. 다른 탭을 닫고 새로고침하세요.";
-      document.body.append(notice);
-    }
-  };
-  setInterval(() => { if (!renewWriter(localStorage, writerId)) loseWriter(); }, 4000);
+const canStart = writer.ok && ["empty", "legacy", "loaded"].includes(loaded.status);
+function loseWriter() {
+  document.getElementById("app").hidden = true;
+  let notice = document.getElementById("writer-conflict");
+  if (!notice) {
+    notice = document.createElement("p");
+    notice.id = "writer-conflict";
+    notice.setAttribute("role", "alert");
+    document.body.append(notice);
+  }
+  notice.textContent = "다른 탭에서 게임을 사용 중이거나 저장 권한을 잃었습니다. 다른 탭을 닫고 새로고침하세요.";
+}
+if (writer.ok) {
+  setInterval(() => { if (!writer.guard()) loseWriter(); }, 4000);
   window.addEventListener("storage", event => {
-    if (event.key === "claude_game_writer_v1" && !renewWriter(localStorage, writerId))
-      loseWriter();
+    if (event.key === "claude_game_writer_v1" && !writer.guard()) loseWriter();
   });
-  window.addEventListener("pagehide", () => releaseWriter(localStorage, writerId));
+  window.addEventListener("pagehide", writer.release);
 } else {
-  const notice = document.createElement("p");
-  notice.id = "writer-conflict";
-  notice.setAttribute("role", "alert");
-  notice.textContent = "다른 탭이 게임 저장을 사용 중이거나 저장소에 접근할 수 없습니다. 다른 탭을 닫고 새로고침하세요.";
-  document.body.append(notice);
+  loseWriter();
 }
 mountSaveNotice({
-  initial: canStart ? null : { ok: false, reason: loaded.status },
+  initial: canStart ? null : { ok: false, reason: writer.ok ? loaded.status : "conflict" },
   retry: () => saveState(store.getState()),
 });
 if (canStart) bootGame(loaded.state);
