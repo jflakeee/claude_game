@@ -35,8 +35,14 @@ setInterval(() => {
   }
 }, 1000);
 if (store.getState().combatSession) {
-  finishCombat(store.getState(), "interrupted");
-  saveState(store.getState());
+  const candidate = structuredClone(store.getState());
+  finishCombat(candidate, "interrupted");
+  if (!saveState(candidate).ok) {
+    // Never expose a recovered reward until the settlement is durable.
+    document.getElementById("app").hidden = true;
+    return;
+  }
+  Object.assign(store.getState(), candidate);
 }
 document
   .querySelector("#app")
