@@ -46,8 +46,9 @@ const URL = "http://127.0.0.1:5173/claude_game/";
   await second.close();
 
   // Exercise the real Phaser combat scene's failed final settlement.
-  await page.locator("canvas").click({ position: { x: 180, y: 150 } });
-  await page.waitForFunction(() => window.__claudeGame.game.scene.getScene("CombatScene").scene.isActive());
+  // Combat is entered through the expedition action, not a canvas click.
+  await page.locator(".survival-gate").click();
+  await page.waitForFunction(() => window.__claudeGame.game.scene.getScene("CombatScene").scene.isActive(), { timeout: 10000 });
   const combat = await page.evaluate(() => {
     const game = window.__claudeGame;
     const scene = game.game.scene.getScene("CombatScene");
