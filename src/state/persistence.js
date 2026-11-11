@@ -2,6 +2,11 @@ import { GRADE_ORDER } from "../data/dropTable.js";
 const STORAGE_KEY = "claude_game_save_v1";
 export const SAVE_SCHEMA_VERSION = 1;
 const listeners = new Set();
+let writerGuard = null;
+
+export function setSaveWriterGuard(guard) {
+  writerGuard = guard;
+}
 
 export function subscribeSaveStatus(listener) {
   listeners.add(listener);
@@ -45,6 +50,8 @@ export function loadState(storage) {
 }
 
 export function saveState(state, storage) {
+  if (!storage && writerGuard && !writerGuard())
+    return report({ ok: false, reason: "conflict" });
   const current = readSave(storage);
   if (!["empty", "legacy", "loaded"].includes(current.status))
     return report({ ok: false, reason: current.status });

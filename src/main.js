@@ -2,7 +2,7 @@ import Phaser from "phaser";
 import { IdleScene } from "./scenes/IdleScene.js";
 import { CombatScene } from "./scenes/CombatScene.js";
 import { store } from "./state/globalStore.js";
-import { saveState, readSave, hydrateState } from "./state/persistence.js";
+import { saveState, readSave, hydrateState, setSaveWriterGuard } from "./state/persistence.js";
 import { mountSaveNotice } from "./ui/SaveNotice.js";
 import { mountBottomPanel, showToast } from "./ui/BottomPanel.js";
 import { finishCombat } from "./systems/combatLifecycle.js";
@@ -14,6 +14,7 @@ import { claimWriter, renewWriter, releaseWriter } from "./state/tabWriter.js";
 
 const writerId = crypto.randomUUID();
 const writerReady = claimWriter(localStorage, writerId);
+setSaveWriterGuard(() => renewWriter(localStorage, writerId));
 const loaded = readSave();
 const canStart = writerReady && ["empty", "legacy", "loaded"].includes(loaded.status);
 if (writerReady) {
