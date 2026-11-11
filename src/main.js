@@ -26,10 +26,11 @@ tickMarket(store.getState());
 ensureMarket(store.getState());
 setInterval(() => {
   const state = store.getState();
-  const changed = tickMarket(state);
-  const refreshed = ensureMarket(state);
-  if (changed || refreshed) {
-    saveState(state);
+  const candidate = structuredClone(state);
+  const changed = tickMarket(candidate);
+  const refreshed = ensureMarket(candidate);
+  if ((changed || refreshed) && saveState(candidate).ok) {
+    Object.assign(state, candidate);
     store.notify();
   }
 }, 1000);
