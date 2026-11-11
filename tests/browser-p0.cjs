@@ -40,10 +40,41 @@ const URL = "http://127.0.0.1:5173/claude_game/";
   assert.equal(result.saved, false);
 
   await second.close();
+
+  // Exercise the real Phaser combat scene's failed final settlement.
+  await page.locator("canvas").click({ position: { x: 180, y: 150 } });
+  await page.waitForFunction(() => window.__claudeGame.game.scene.getScene("CombatScene").scene.isActive());
+  const combat = await page.evaluate(() => {
+    const game = window.__claudeGame;
+    const scene = game.game.scene.getScene("CombatScene");
+    scene.session.rewards.gold = 13;
+    const original = Storage.prototype.setItem;
+    Storage.prototype.setItem = function (key, value) {
+      if (key === "claude_game_save_v1") throw new Error("quota");
+      return original.call(this, key, value);
+    };
+    try {
+      scene.endCombat("escaped");
+      return {
+        pending: game.store.getState().combatSession !== null,
+        gold: game.store.getState().currency.gold,
+        active: scene.scene.isActive(),
+      };
+    } finally {
+      Storage.prototype.setItem = original;
+    }
+  });
+  assert.equal(combat.pending, true);
+  assert.equal(combat.gold, 0);
+  assert.equal(combat.active, true);
+  await page.evaluate(() => window.__claudeGame.game.scene.getScene("CombatScene").endCombat("escaped"));
+  await page.waitForFunction(() => window.__claudeGame.store.getState().combatSession === null);
+  assert.equal(await page.evaluate(() => window.__claudeGame.store.getState().currency.gold), 13);
+
   await page.reload({ waitUntil: "networkidle" });
   await page.waitForFunction(() => !!window.__claudeGame);
   assert.equal(await page.locator("#app").isVisible(), true);
   assert.deepEqual(errors, []);
   await browser.close();
-  console.log("PASS: browser startup, second tab blocked, failed save, reload");
+  console.log("PASS: browser startup, second tab blocked, failed save, combat settlement retry, reload");
 })().catch(error => { console.error(error); process.exitCode = 1; });
