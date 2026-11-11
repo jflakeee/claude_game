@@ -36,8 +36,16 @@ export class CombatScene extends Phaser.Scene {
     );
     const state = store.getState();
     this.encounter = data.encounter || "survival";
-    this.session = beginCombat(state, this.encounter);
-    saveState(state);
+    const candidate = structuredClone(state);
+    this.session = beginCombat(candidate, this.encounter);
+    if (!saveState(candidate).ok) {
+      this.ending = true;
+      document.getElementById("app").classList.remove("in-combat");
+      this.scene.start("IdleScene");
+      return;
+    }
+    Object.assign(state, candidate);
+    this.session = state.combatSession;
     this.arena = createArena(this.scale.width, this.scale.height, {
       encounter: this.encounter,
       bossWins: state.progression.bossWins,
@@ -415,8 +423,17 @@ export class CombatScene extends Phaser.Scene {
     }
     this.ending = true;
     const state = store.getState();
-    finishCombat(state, outcome);
-    saveState(state);
+    const candidate = structuredClone(state);
+    finishCombat(candidate, outcome);
+    if (!saveState(candidate).ok) {
+      // Keep the unsettled session in memory and on disk for safe recovery.
+      this.ending = false;
+      this.hud.querySelector(".combat-effects").textContent =
+        "보상 저장 실패 · 다시 시도해 주세요.";
+      return;
+    }
+    Object.assign(state, candidate);
+    this.session = state.combatSession;
     let exited = false;
     this.completeExit = () => {
       if (exited) return;
