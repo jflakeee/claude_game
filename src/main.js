@@ -12,6 +12,7 @@ import { motionEnabled } from "./systems/presentation.js";
 import { equipmentPreview } from "./systems/equipmentPreview.js";
 import { acquireGameWriter } from "./state/gameWriter.js";
 
+async function startGame() {
 const writerId = crypto.randomUUID();
 const writer = await acquireGameWriter({ storage: localStorage, owner: writerId });
 setSaveWriterGuard(writer.guard);
@@ -43,6 +44,11 @@ mountSaveNotice({
 });
 if (canStart) bootGame(loaded.state);
 else document.getElementById("app").hidden = true;
+}
+startGame().catch(error => {
+  console.error("Game startup failed", error);
+  document.getElementById("app").hidden = true;
+});
 
 function bootGame(saved) {
 store.setState(hydrateState(saved, store.getState()));
