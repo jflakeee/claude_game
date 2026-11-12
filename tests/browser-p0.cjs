@@ -116,7 +116,12 @@ const URL = "http://127.0.0.1:5173/claude_game/";
   legacy.on("pageerror", error => errors.push(error.message));
   await legacy.goto(URL, { waitUntil: "networkidle" });
   await legacy.waitForFunction(() => !!window.__claudeGame);
-  await legacy.evaluate(() => {
+  // Install the legacy fixture before the app boots: pagehide persistence
+  // would otherwise overwrite an injected fixture with the current state.
+  await legacy.close();
+  const legacyReader = await context.newPage();
+  legacyReader.on("pageerror", error => errors.push(error.message));
+  await legacyReader.addInitScript(() => {
     const key = "claude_game_save_v1";
     const state = JSON.parse(localStorage.getItem(key));
     delete state.schemaVersion;
@@ -124,10 +129,10 @@ const URL = "http://127.0.0.1:5173/claude_game/";
     state.currency.gold = 77;
     localStorage.setItem(key, JSON.stringify(state));
   });
-  await legacy.reload({ waitUntil: "networkidle" });
-  await legacy.waitForFunction(() => !!window.__claudeGame);
-  assert.equal(await legacy.evaluate(() => window.__claudeGame.store.getState().currency.gold), 77);
-  assert.equal(await legacy.locator("#app").isVisible(), true);
+  await legacyReader.goto(URL, { waitUntil: "networkidle" });
+  await legacyReader.waitForFunction(() => !!window.__claudeGame);
+  assert.equal(await legacyReader.evaluate(() => window.__claudeGame.store.getState().currency.gold), 77);
+  assert.equal(await legacyReader.locator("#app").isVisible(), true);
   assert.deepEqual(errors, []);
   await browser.close();
   console.log("PASS: browser startup, tab exclusion and handoff, failed save, durable combat settlement retry, reload, four-way writer race, legacy hydration");
