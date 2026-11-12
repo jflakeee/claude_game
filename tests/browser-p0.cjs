@@ -7,7 +7,7 @@ const URL = "http://127.0.0.1:5173/claude_game/";
   // Fail quickly and preserve diagnostics instead of hanging a CI runner.
   const timeout = setTimeout(() => { console.error("P0 browser acceptance timeout"); process.exit(2); }, 90000);
   timeout.unref();
-  const context = await browser.newContext({ viewport: { width: 390, height: 844 } });
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, deviceScaleFactor: 2 });
   const errors = [];
   const page = await context.newPage();
   page.on("pageerror", error => errors.push(error.message));
@@ -15,6 +15,7 @@ const URL = "http://127.0.0.1:5173/claude_game/";
   await page.waitForFunction(() => !!window.__claudeGame);
   assert.equal(await page.locator("#app").isVisible(), true);
   assert.equal(await page.evaluate(() => !!navigator.locks?.request), true);
+  assert.equal(await page.evaluate(() => navigator.maxTouchPoints > 0), true);
   // Mobile viewport: core controls must remain reachable without horizontal overflow.
   const mobile = await page.evaluate(() => ({
     viewportWidth: document.documentElement.clientWidth,
@@ -69,7 +70,7 @@ const URL = "http://127.0.0.1:5173/claude_game/";
 
   // Exercise the real Phaser combat scene's failed final settlement.
   // Combat is entered through the expedition action, not a canvas click.
-  await page.locator(".survival-gate").click();
+  await page.locator(".survival-gate").tap();
   await page.waitForFunction(() => window.__claudeGame.game.scene.getScene("CombatScene").scene.isActive(), { timeout: 10000 });
   const combat = await page.evaluate(() => {
     const game = window.__claudeGame;
@@ -157,5 +158,5 @@ const URL = "http://127.0.0.1:5173/claude_game/";
   assert.equal(await legacyReader.locator("#app").isVisible(), true);
   assert.deepEqual(errors, []);
   await browser.close();
-  console.log("PASS: browser startup, tab exclusion and handoff, failed save, durable combat settlement retry, reload, four-way writer race, legacy hydration");
+  console.log("PASS: mobile touch expedition, browser startup, tab exclusion and handoff, failed save, durable combat settlement retry, reload, four-way writer race, legacy hydration");
 })().catch(error => { console.error(error); process.exit(1); });
