@@ -97,7 +97,38 @@ const URL = "http://127.0.0.1:5173/claude_game/";
   await successor.goto(URL, { waitUntil: "networkidle" });
   await successor.waitForFunction(() => !!window.__claudeGame);
   assert.equal(await successor.locator("#app").isVisible(), true);
+  // Simultaneous navigation must produce exactly one active writer.
+  await successor.close();
+  const contenders = await Promise.all(Array.from({ length: 4 }, () => context.newPage()));
+  for (const contender of contenders) contender.on("pageerror", error => errors.push(error.message));
+  await Promise.all(contenders.map(contender => contender.goto(URL, { waitUntil: "networkidle" })));
+  const visible = await Promise.all(contenders.map(contender => contender.locator("#app").isVisible()));
+  assert.equal(visible.filter(Boolean).length, 1, "Exactly one concurrent tab may write");
+  const activeIndex = visible.indexOf(true);
+  for (let i = 0; i < contenders.length; i++) {
+    if (i !== activeIndex) {
+      assert.match(await contenders[i].locator("#writer-conflict").innerText(), /다른 탭/);
+    }
+  }
+  await Promise.all(contenders.map(contender => contender.close()));
+  // A pre-schema save is hydrated without dropping its existing gold.
+  const legacy = await context.newPage();
+  legacy.on("pageerror", error => errors.push(error.message));
+  await legacy.goto(URL, { waitUntil: "networkidle" });
+  await legacy.waitForFunction(() => !!window.__claudeGame);
+  await legacy.evaluate(() => {
+    const key = "claude_game_save_v1";
+    const state = JSON.parse(localStorage.getItem(key));
+    delete state.schemaVersion;
+    delete state.revision;
+    state.currency.gold = 77;
+    localStorage.setItem(key, JSON.stringify(state));
+  });
+  await legacy.reload({ waitUntil: "networkidle" });
+  await legacy.waitForFunction(() => !!window.__claudeGame);
+  assert.equal(await legacy.evaluate(() => window.__claudeGame.store.getState().currency.gold), 77);
+  assert.equal(await legacy.locator("#app").isVisible(), true);
   assert.deepEqual(errors, []);
   await browser.close();
-  console.log("PASS: browser startup, tab exclusion and handoff, failed save, durable combat settlement retry, reload");
+  console.log("PASS: browser startup, tab exclusion and handoff, failed save, durable combat settlement retry, reload, four-way writer race, legacy hydration");
 })().catch(error => { console.error(error); process.exit(1); });
