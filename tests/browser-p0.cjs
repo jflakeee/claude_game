@@ -28,6 +28,16 @@ const URL = "http://127.0.0.1:5173/claude_game/";
   assert.ok(mobile.gate?.width > 40, "Survival button must have a usable touch target");
   assert.ok(mobile.gate.left >= 0 && mobile.gate.right <= mobile.viewportWidth + 2, "Survival button must fit viewport");
 
+  // Simulate device rotation without changing the real device or browser engine.
+  await page.setViewportSize({ width: 844, height: 390 });
+  await page.waitForFunction(() => {
+    const gate = document.querySelector(".survival-gate")?.getBoundingClientRect();
+    return gate?.width > 40 && gate.left >= 0 && gate.right <= document.documentElement.clientWidth + 2;
+  }, null, { timeout: 10000 });
+  assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth + 2), true);
+  await page.setViewportSize({ width: 390, height: 844 });
+  assert.equal(await page.locator(".survival-gate").isVisible(), true);
+
   const second = await context.newPage();
   second.on("pageerror", error => errors.push(error.message));
   await second.goto(URL, { waitUntil: "networkidle" });
