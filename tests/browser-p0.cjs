@@ -15,6 +15,18 @@ const URL = "http://127.0.0.1:5173/claude_game/";
   await page.waitForFunction(() => !!window.__claudeGame);
   assert.equal(await page.locator("#app").isVisible(), true);
   assert.equal(await page.evaluate(() => !!navigator.locks?.request), true);
+  // Mobile viewport: core controls must remain reachable without horizontal overflow.
+  const mobile = await page.evaluate(() => ({
+    viewportWidth: document.documentElement.clientWidth,
+    documentWidth: document.documentElement.scrollWidth,
+    gate: (() => {
+      const rect = document.querySelector(".survival-gate")?.getBoundingClientRect();
+      return rect && { width: rect.width, left: rect.left, right: rect.right };
+    })(),
+  }));
+  assert.ok(mobile.documentWidth <= mobile.viewportWidth + 2, "Unexpected mobile horizontal overflow");
+  assert.ok(mobile.gate?.width > 40, "Survival button must have a usable touch target");
+  assert.ok(mobile.gate.left >= 0 && mobile.gate.right <= mobile.viewportWidth + 2, "Survival button must fit viewport");
 
   const second = await context.newPage();
   second.on("pageerror", error => errors.push(error.message));
