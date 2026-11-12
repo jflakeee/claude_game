@@ -81,7 +81,23 @@ const URL = "http://127.0.0.1:5173/claude_game/";
   await page.reload({ waitUntil: "networkidle" });
   await page.waitForFunction(() => !!window.__claudeGame);
   assert.equal(await page.locator("#app").isVisible(), true);
+  // A successful settlement must remain durable across a real page reload.
+  assert.equal(
+    await page.evaluate(() => window.__claudeGame.store.getState().currency.gold),
+    combat.initialGold + 13,
+  );
+  assert.equal(
+    await page.evaluate(() => window.__claudeGame.store.getState().combatSession),
+    null,
+  );
+  // Closing the owner tab must allow a new tab to acquire the writer.
+  await page.close();
+  const successor = await context.newPage();
+  successor.on("pageerror", error => errors.push(error.message));
+  await successor.goto(URL, { waitUntil: "networkidle" });
+  await successor.waitForFunction(() => !!window.__claudeGame);
+  assert.equal(await successor.locator("#app").isVisible(), true);
   assert.deepEqual(errors, []);
   await browser.close();
-  console.log("PASS: browser startup, second tab blocked, failed save, combat settlement retry, reload");
+  console.log("PASS: browser startup, tab exclusion and handoff, failed save, durable combat settlement retry, reload");
 })().catch(error => { console.error(error); process.exit(1); });
