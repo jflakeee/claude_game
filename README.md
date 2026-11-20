@@ -49,6 +49,16 @@
 
 [📷 추가 QA 스크린샷 보기](docs/qa/2026-10-06/deployment/)
 
+### ⚔️ 생존 전투 진행 과정
+
+아래는 브라우저 QA에서 실제로 기록한 **3분 생존 전투의 시간대별 정지 화면**입니다. 영상이나 GIF가 아닌 검증용 스크린샷이므로 움직임은 표시되지 않습니다.
+
+| 전투 시작 | 60초 경과 | 120초 경과 | 전투 완료 |
+| :---: | :---: | :---: | :---: |
+| [![전투 시작](docs/qa/2026-10-03/acceptance/survival-0.png)](docs/qa/2026-10-03/acceptance/survival-0.png) | [![60초](docs/qa/2026-10-03/acceptance/survival-60.png)](docs/qa/2026-10-03/acceptance/survival-60.png) | [![120초](docs/qa/2026-10-03/acceptance/survival-120.png)](docs/qa/2026-10-03/acceptance/survival-120.png) | [![완료](docs/qa/2026-10-03/acceptance/survival-cleared.png)](docs/qa/2026-10-03/acceptance/survival-cleared.png) |
+
+[전체 전투 QA 기록](docs/qa/2026-10-03/acceptance/) · [웹에서 직접 플레이](https://www.fungood.co.kr/claude_game/)
+
 ## ✨ 주요 기능
 
 | 콘텐츠 | 설명 |
