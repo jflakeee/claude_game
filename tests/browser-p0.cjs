@@ -104,6 +104,36 @@ const URL = "http://127.0.0.1:5173/claude_game/";
   await page.reload({ waitUntil: "networkidle" });
   await page.waitForFunction(() => !!window.__claudeGame);
   assert.equal(await page.locator("#app").isVisible(), true);
+  // Audio and motion preferences survive a background-save/reload cycle.
+  const preferences = await page.evaluate(() => {
+    const game = window.__claudeGame;
+    const state = game.store.getState();
+    state.settings.sound = false;
+    state.settings.motion = false;
+    game.store.notify();
+    const saved = game.save();
+    document.dispatchEvent(new Event("visibilitychange"));
+    return { saved: saved.ok, motionClass: document.documentElement.classList.contains("motion-off") };
+  });
+  assert.equal(preferences.saved, true);
+  assert.equal(preferences.motionClass, true);
+  await page.reload({ waitUntil: "networkidle" });
+  await page.waitForFunction(() => !!window.__claudeGame);
+  assert.deepEqual(await page.evaluate(() => {
+    const settings = window.__claudeGame.store.getState().settings;
+    return { sound: settings.sound, motion: settings.motion };
+  }), { sound: false, motion: false });
+  assert.equal(await page.evaluate(() => document.documentElement.classList.contains("motion-off")), true);
+  // Restore defaults for subsequent scenarios without changing the save schema.
+  await page.evaluate(() => {
+    const game = window.__claudeGame;
+    const state = game.store.getState();
+    state.settings.sound = true;
+    state.settings.motion = true;
+    game.store.notify();
+    if (!game.save().ok) throw new Error("Preference restore save failed");
+  });
+
   // A successful settlement must remain durable across a real page reload.
   assert.equal(
     await page.evaluate(() => window.__claudeGame.store.getState().currency.gold),
