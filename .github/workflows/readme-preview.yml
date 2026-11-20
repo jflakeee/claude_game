@@ -2,6 +2,11 @@ name: README gameplay preview
 
 on:
   workflow_dispatch:
+  push:
+    branches: [master]
+    paths:
+      - '.github/workflows/readme-preview.yml'
+      - 'tests/readme-preview.cjs'
 
 permissions:
   contents: read
