@@ -9,7 +9,7 @@ on:
       - 'tests/readme-preview.cjs'
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   preview:
@@ -43,6 +43,32 @@ jobs:
           fi
           ffmpeg -hide_banner -loglevel error -y -framerate 2 -i readme-preview/frame-%02d.png -vf 'fps=2,scale=390:-1:flags=lanczos,palettegen' readme-preview/palette.png
           ffmpeg -hide_banner -loglevel error -y -framerate 2 -i readme-preview/frame-%02d.png -i readme-preview/palette.png -lavfi 'fps=2,scale=390:-1:flags=lanczos[x];[x][1:v]paletteuse' readme-preview/gameplay.gif
+      - name: Publish generated GIF to README
+        if: github.ref == 'refs/heads/master'
+        run: |
+          if [ ! -s readme-preview/gameplay.gif ]; then
+            echo 'No GIF produced; README unchanged'
+            exit 0
+          fi
+          mkdir -p docs/media
+          cp readme-preview/gameplay.gif docs/media/gameplay.gif
+          python3 - <<'PY'
+          from pathlib import Path
+          readme = Path('README.md')
+          text = readme.read_text()
+          anchor = '## 📸 게임 화면'
+          snippet = '![모바일 생존 전투 플레이 미리보기](docs/media/gameplay.gif)\n\n'
+          if snippet not in text:
+              assert anchor in text
+              readme.write_text(text.replace(anchor, anchor + '\\n\\n' + snippet, 1))
+          PY
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add README.md docs/media/gameplay.gif
+          if ! git diff --cached --quiet; then
+            git commit -m 'docs: publish recorded gameplay GIF'
+            git push
+          fi
       - uses: actions/upload-artifact@v4
         if: always()
         with:
