@@ -278,14 +278,22 @@ export class CombatScene extends Phaser.Scene {
       0,
       Math.ceil((COMBAT_DURATION_MS - this.session.elapsedMs) / 1000),
     );
-    this.hud.querySelector("#combat-time").textContent =
-      `${String(Math.floor(seconds / 60)).padStart(2, "0")}:${String(seconds % 60).padStart(2, "0")}`;
-    this.hud.querySelector("#combat-hp").textContent = Math.ceil(player.hp);
-    this.hud.querySelector("#combat-health-bar").style.width = `${player.hp}%`;
+    // Skip unchanged DOM writes in the hot combat loop (especially on mobile).
+    const updateText = (selector, value) => {
+      const element = this.hud.querySelector(selector);
+      if (element.textContent !== String(value)) element.textContent = value;
+    };
+    const updateWidth = (selector, value) => {
+      const element = this.hud.querySelector(selector);
+      if (element.style.width !== value) element.style.width = value;
+    };
+    updateText("#combat-time",
+      `${String(Math.floor(seconds / 60)).padStart(2, "0")}:${String(seconds % 60).padStart(2, "0")}`);
+    updateText("#combat-hp", Math.ceil(player.hp));
+    updateWidth("#combat-health-bar", `${player.hp}%`);
     const trail = advanceHealthTrail(this.healthTrail, player.hp, dt);
-    this.hud.querySelector("#combat-health-trail").style.width = `${motionEnabled() ? trail : player.hp}%`;
-    this.hud.querySelector("#combat-kills").textContent =
-      `${this.session.kills} 처치 · ${this.session.rewards.gold}G`;
+    updateWidth("#combat-health-trail", `${motionEnabled() ? trail : player.hp}%`);
+    updateText("#combat-kills", `${this.session.kills} 처치 · ${this.session.rewards.gold}G`);
     if (this.session.outcome) this.endCombat(this.session.outcome);
   }
   queueWarning({ message, priority = 1 }, time) {
