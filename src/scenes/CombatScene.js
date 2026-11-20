@@ -173,6 +173,17 @@ export class CombatScene extends Phaser.Scene {
           exp: 5,
           ...(Math.random() < 0.25 ? { item: rollItem() } : {}),
         });
+        if (motionEnabled()) {
+          // Low-cost VFX pilot: short-lived graphics, no save-state mutations.
+          const burst = this.add.graphics().setDepth(9);
+          burst.lineStyle(2, 0xffdf91, 0.9);
+          burst.strokeCircle(0, 0, 10);
+          burst.setPosition(event.x, event.y);
+          this.tweens.add({
+            targets: burst, scale: 2.1, alpha: 0,
+            duration: 210, onComplete: () => burst.destroy(),
+          });
+        }
         floatingText(this, event.x, event.y, "+4G", "#e8cb82");
         rewardFlight(this, event.x, event.y, "#combat-kills");
         sound("reward");
