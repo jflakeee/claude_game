@@ -9,6 +9,13 @@
 
 </div>
 
+[![GitHub Pages](https://img.shields.io/badge/Play-Web%20Demo-4f86c6?logo=googlechrome&logoColor=white)](https://www.fungood.co.kr/claude_game/)
+[![Phaser](https://img.shields.io/badge/Engine-Phaser%203-8d63bd)](https://phaser.io/)
+[![P0 Safety](https://github.com/jflakeee/claude_game/actions/workflows/p0-safety.yml/badge.svg?branch=fix%2Fp0-transaction-safety-20261111)](https://github.com/jflakeee/claude_game/actions/workflows/p0-safety.yml)
+[![Browser Acceptance](https://github.com/jflakeee/claude_game/actions/workflows/p0-browser.yml/badge.svg?branch=fix%2Fp0-transaction-safety-20261111)](https://github.com/jflakeee/claude_game/actions/workflows/p0-browser.yml)
+
+> **개발 상태:** 공개 데모는 `master` 기준입니다. 위 테스트 배지는 별도 안정화 브랜치의 검증 상태를 나타냅니다.
+
 ---
 
 ## 🎮 게임 소개
@@ -96,6 +103,20 @@ tests/          # 단위·브라우저·시각 검증
 docs/           # 설계 및 검증 기록
 .claude/        # 개발 에이전트 설정과 스킬
 ```
+
+## ❓ 자주 묻는 질문
+
+**휴대전화에서도 플레이할 수 있나요?**  
+모바일 브라우저와 터치 조작을 지원하도록 개발 중입니다. 기기·브라우저에 따라 성능 차이가 있을 수 있습니다.
+
+**캐릭터를 직접 조작해야 하나요?**  
+기본 탐험은 자동 진행됩니다. 생존 전투와 보스 아레나에서는 직접 이동해 공격을 피하며 공격은 자동으로 처리됩니다.
+
+**저장 데이터는 어디에 보관되나요?**  
+현재 게임은 브라우저 로컬 저장소를 사용합니다. 다른 기기나 브라우저로 자동 동기화되지 않으며, 사이트 데이터 삭제 시 저장 기록을 잃을 수 있으니 주의해 주세요.
+
+**개발 중인 기능을 어디서 볼 수 있나요?**  
+실험적 변경 사항은 [안정화 작업 브랜치](https://github.com/jflakeee/claude_game/tree/fix/p0-transaction-safety-20261111)에서 확인할 수 있습니다. 공개 데모와 기능이 다를 수 있습니다.
 
 ## 🤝 참여 및 피드백
 
