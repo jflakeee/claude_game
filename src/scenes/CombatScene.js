@@ -190,6 +190,20 @@ export class CombatScene extends Phaser.Scene {
         saveState(store.getState());
       } else if (event.type === "hit") {
         this.hitEffects.set(event.targetId, { until: time + 120, ...event });
+        sound("hit");
+        if (motionEnabled() && this.hitEffects.size <= 8) {
+          // Small pixel-style cross flash; capped for crowded mobile encounters.
+          const flash = this.add.graphics().setDepth(9).setPosition(event.x, event.y);
+          flash.fillStyle(0xfff0b6, 0.95);
+          flash.fillRect(-2, -11, 4, 22);
+          flash.fillRect(-11, -2, 22, 4);
+          flash.fillStyle(0xffffff, 1);
+          flash.fillRect(-3, -3, 6, 6);
+          this.tweens.add({
+            targets: flash, alpha: 0, scale: 1.5, duration: 110,
+            onComplete: () => flash.destroy(),
+          });
+        }
         floatingText(
           this,
           event.x,
