@@ -24,6 +24,31 @@
 
 > **현재 개발 중인 프로젝트입니다.** 기능과 밸런스, 모바일 사용성은 계속 개선되고 있습니다.
 
+## 📸 게임 화면
+
+실제 프로젝트 QA 과정에서 촬영한 화면입니다. 최신 개발 브랜치의 UI와 일부 차이가 있을 수 있습니다.
+
+<table>
+  <tr>
+    <td align="center"><strong>모바일 탐험</strong></td>
+    <td align="center"><strong>보스 전투</strong></td>
+  </tr>
+  <tr>
+    <td><img src="docs/qa/2026-10-06/deployment/03-mobile.png" alt="모바일 탐험 화면" width="340"></td>
+    <td><img src="docs/qa/2026-10-06/deployment/02-boss.png" alt="보스 아레나 전투 화면" width="340"></td>
+  </tr>
+  <tr>
+    <td align="center"><strong>데스크톱 플레이</strong></td>
+    <td align="center"><strong>웹 포털</strong></td>
+  </tr>
+  <tr>
+    <td><img src="docs/qa/2026-10-06/deployment/01-desktop.png" alt="데스크톱 플레이 화면" width="340"></td>
+    <td><img src="docs/qa/2026-10-06/deployment/04-portal.png" alt="게임 포털 화면" width="340"></td>
+  </tr>
+</table>
+
+[📷 추가 QA 스크린샷 보기](docs/qa/2026-10-06/deployment/)
+
 ## ✨ 주요 기능
 
 | 콘텐츠 | 설명 |
