@@ -41,6 +41,12 @@ jobs:
         run: |
           ffmpeg -hide_banner -loglevel error -y -framerate 2 -i readme-preview/frame-%02d.png -vf 'fps=2,scale=390:-1:flags=lanczos,palettegen' readme-preview/palette.png
           ffmpeg -hide_banner -loglevel error -y -framerate 2 -i readme-preview/frame-%02d.png -i readme-preview/palette.png -lavfi 'fps=2,scale=390:-1:flags=lanczos[x];[x][1:v]paletteuse' readme-preview/gameplay.gif
+      - name: Verify generated GIF
+        run: |
+          test -s readme-preview/gameplay.gif
+          frames="$(ffprobe -v error -count_frames -select_streams v:0 -show_entries stream=nb_read_frames -of default=nokey=1:noprint_wrappers=1 readme-preview/gameplay.gif)"
+          echo "Recorded GIF frames: $frames"
+          test "$frames" -ge 5
       - name: Publish generated GIF to README
         if: github.ref == 'refs/heads/master'
         run: |
@@ -58,7 +64,7 @@ jobs:
           snippet = '![모바일 생존 전투 플레이 미리보기](docs/media/gameplay.gif)\n\n'
           if snippet not in text:
               assert anchor in text
-              readme.write_text(text.replace(anchor, anchor + '\\n\\n' + snippet, 1))
+              readme.write_text(text.replace(anchor, anchor + '\n\n' + snippet, 1))
           PY
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
